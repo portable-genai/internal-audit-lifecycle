@@ -1,0 +1,8 @@
+{
+  "locals": {
+    "render_region": "asia-southeast1",
+    "render_package_name": "internal_audit_lifecycle",
+    "render_env_prefix": "AUDIT",
+    "render_catalog_id": "Aud1"
+  }
+}

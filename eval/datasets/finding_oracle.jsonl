@@ -1,0 +1,10 @@
+# Independent oracle for the finding-severity engine (slice 4). Each row is an (impact, likelihood)
+# pair with its HAND-COMPUTED expected severity from the reference FindingConfig floors
+# (score = impact*likelihood; critical>=20, high>=12, medium>=6, low>=0). A changed floor or a
+# broken product turns severity_accuracy red.
+{"impact": 4, "likelihood": 4, "expected_severity": "high"}
+{"impact": 5, "likelihood": 5, "expected_severity": "critical"}
+{"impact": 5, "likelihood": 4, "expected_severity": "critical"}
+{"impact": 3, "likelihood": 3, "expected_severity": "medium"}
+{"impact": 2, "likelihood": 2, "expected_severity": "low"}
+{"impact": 1, "likelihood": 5, "expected_severity": "low"}

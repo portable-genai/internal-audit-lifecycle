@@ -1,0 +1,10 @@
+# Independent oracle for the risk-based annual-planning engine (slice 1). Each row is one seed
+# audit-universe entity with its HAND-COMPUTED expected score, band and rank, derived from the
+# reference AuditPlanConfig by hand, NOT from the engine. The eval compares the engine output to
+# these figures, so a changed weight or a broken clamp turns plan_ranking_accuracy red.
+# Hand-derivation for ent-payments: inherent 90*45//100=40 (cap 45); prior (1200-365)//365=2y*9=18
+# (cap 27); trend declining=26; horizon 3*7=21 (cap 21); sum 105 -> clamp 100 -> >=78 critical.
+{"entity_id": "ent-payments", "expected_score": 100, "expected_band": "critical", "expected_rank": 1}
+{"entity_id": "ent-treasury", "expected_score": 67, "expected_band": "high", "expected_rank": 2}
+{"entity_id": "ent-onboarding", "expected_score": 50, "expected_band": "medium", "expected_rank": 3}
+{"entity_id": "ent-facilities", "expected_score": 5, "expected_band": "low", "expected_rank": 4}
