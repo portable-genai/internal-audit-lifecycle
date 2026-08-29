@@ -39,7 +39,7 @@ Four things, and two of them are code here:
    `gcp` process while any of them is bound, so this is not something a fork can forget.
 3. **A durable store for the estate.** Offline the universe lives in process. A deployment needs a
    store bound behind a port of its own, carrying each estate's owning tenant on its rows.
-4. **The review console.** An Hrz7 deployment reachable at `HRZ_HUMAN_REVIEW_URL`. The managed
+4. **The review console.** An Hrz7 deployment reachable at `HUMAN_REVIEW_URL`. The managed
    router REFUSES to swallow an escalation when this is empty, so a fork cannot ship rule R8
    unwired and green.
 
