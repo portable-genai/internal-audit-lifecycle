@@ -158,7 +158,7 @@ map):
   remediation store.
 - **Hrz7** human-review / maker-checker console: every consequential plan, finding and escalated
   triage is routed to it over the shared `review-kit` (rule R8); you wire your endpoint
-  (`HRZ_HUMAN_REVIEW_URL`), you do not re-implement the console.
+  (`HUMAN_REVIEW_URL`), you do not re-implement the console.
 - **Hrz5** observability plus immutable WORM audit: audit events and trace spans go to it through
   `AuditSinkPort` and `ObservabilityTracerPort`.
 - **Hrz4** AI-quality / model-risk gate: owns promotion. `eval/run_eval.py --mode gate` is the
