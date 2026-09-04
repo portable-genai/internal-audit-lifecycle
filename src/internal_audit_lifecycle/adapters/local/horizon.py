@@ -1,8 +1,9 @@
-"""Local HorizonReadPort: a deterministic fixture of Rsk1's horizon change-feed signal.
+"""Local HorizonReadPort: a deterministic fixture of compliance-advisory's horizon change-feed
+signal.
 
-Rsk1 is not reachable in the offline gate, so this stands in for its ledger-diff output with a
-fixed per-entity signal count (a fixture test freezes the shape). It matches the seed audit
-universe entity ids, so the planner's ``horizon_pressure`` driver has real input offline.
+compliance-advisory is not reachable in the offline gate, so this stands in for its ledger-diff
+output with a fixed per-entity signal count (a fixture test freezes the shape). It matches the seed
+audit universe entity ids, so the planner's ``horizon_pressure`` driver has real input offline.
 """
 
 from __future__ import annotations
@@ -18,7 +19,7 @@ def _sig(entity_id: str, signals: int) -> HorizonSignal:
         signals=signals,
         citation=Citation(
             source_id=f"rsk1://horizon/{entity_id}",
-            title="Rsk1 horizon change-feed",
+            title="compliance-advisory horizon change-feed",
             snippet=f"{signals} open change item(s) (FICTIONAL)",
         ),
     )
@@ -33,7 +34,9 @@ _SEED: tuple[HorizonSignal, ...] = (
 
 
 class LocalHorizonAdapter:
-    """Answer horizon-signal reads from a deterministic fixture (no Rsk1, no network)."""
+    """Answer horizon-signal reads from a deterministic fixture (no compliance-advisory, no
+    network).
+    """
 
     def __init__(self, settings: Settings) -> None:
         self._settings = settings

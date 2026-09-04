@@ -1,10 +1,11 @@
 """Slice 2: engagement scoping and deterministic seeded sampling (pure, replayable).
 
-Scoping pulls the obligations for the audited area from Rgc7 (the SINGLE SYSTEM OF RECORD, read
-through the ``obligations`` port) and the current control-effectiveness results from Aud2 (read
-through the ``control_results`` port), and assembles a cited :class:`EngagementScope`. This repo
-holds NO parallel control catalog: every control id in a scope came from a read, never from a
-store of Aud1's own (the control-triad boundary; the no-catalog contract test enforces it).
+Scoping pulls the obligations for the audited area from obligations-control-mapping (the SINGLE
+SYSTEM OF RECORD, read through the ``obligations`` port) and the current control-effectiveness
+results from continuous-controls-monitoring (read through the ``control_results`` port), and
+assembles a cited :class:`EngagementScope`. This repo holds NO parallel control catalog: every
+control id in a scope came from a read, never from a store of internal-audit-lifecycle's own (the
+control-triad boundary; the no-catalog contract test enforces it).
 
 Sampling is deterministic: a stratified-plus-random selection seeded from ``seed`` and ``as_of``,
 so the SAME population and seed always yield byte-identical samples that an auditor can replay and
@@ -34,7 +35,9 @@ __all__ = [
 
 @dataclass(frozen=True, slots=True)
 class ObligationRef:
-    """One obligation read from Rgc7 for an audited area (the ``obligations`` port return)."""
+    """One obligation read from obligations-control-mapping for an audited area (the ``obligations``
+    port return).
+    """
 
     id: str
     title: str
@@ -45,9 +48,11 @@ class ObligationRef:
 
 @dataclass(frozen=True, slots=True)
 class ControlResult:
-    """One control-effectiveness result read from Aud2 (the ``control_results`` port return).
+    """One control-effectiveness result read from continuous-controls-monitoring (the
+    ``control_results`` port return).
 
-    ``effectiveness`` is Aud2's deterministic verdict (``pass`` / ``partial`` / ``fail``); this
+    ``effectiveness`` is continuous-controls-monitoring's deterministic verdict (``pass`` /
+    ``partial`` / ``fail``); this
     repo reads it and never recomputes or restates a control catalog of its own.
     """
 
@@ -89,7 +94,9 @@ class SampleResult:
 
 
 class ScopingService:
-    """Assemble an engagement scope from read-only Rgc7 and Aud2 inputs (no local catalog)."""
+    """Assemble an engagement scope from read-only obligations-control-mapping and
+    continuous-controls-monitoring inputs (no local catalog).
+    """
 
     def build_scope(
         self,
@@ -99,7 +106,8 @@ class ScopingService:
     ) -> EngagementScope:
         """Filter the read inputs to the audited area and flag the failing controls.
 
-        A control counts as failing (and therefore worth sampling) when Aud2's verdict is not a
+        A control counts as failing (and therefore worth sampling) when
+        continuous-controls-monitoring's verdict is not a
         clean ``pass``. The result is cited by the obligations and controls it drew from.
         """
         in_area_obl = tuple(o for o in obligations if o.area == area)

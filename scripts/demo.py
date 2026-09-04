@@ -81,7 +81,7 @@ def loaded_cloud_sdks() -> tuple[str, ...]:
 
 #: Rendered identity, bound once so no other line's length depends on how long a name is.
 SERVICE_NAME = "Internal Audit Lifecycle Copilot"
-CATALOG_ID = "Aud1"
+CATALOG_ID = "internal-audit-lifecycle"
 REPOSITORY = "internal-audit-lifecycle"
 
 # --------------------------------------------------------------------------------------- #
@@ -201,7 +201,8 @@ STEPS: tuple[Step, ...] = (
         label="The flagship engine ranks the audit universe by pure code",
         narration=(
             "The risk-based annual plan is a deterministic named-driver engine: inherent risk, "
-            "prior-finding age, the Aud2 control trend and Rsk1 horizon pressure summed into an "
+            "prior-finding age, the continuous-controls-monitoring control trend and "
+            "compliance-advisory horizon pressure summed into an "
             "integer score and banded by config. The model narrates the ranking; it never "
             "produces a number. Approving a plan is consequential, so it is ROUTED to the lead "
             "auditor, not merely printed."
@@ -351,7 +352,6 @@ class DemoRun:
             title="Deployment",
             rows=(
                 Row("Service", SERVICE_NAME),
-                Row("Catalog id", CATALOG_ID),
                 Row("Profile", self.settings.profile, "ok"),
                 Row("Profiles bound for every port", ", ".join(profiles)),
                 Row("Residency region", self.settings.region),
@@ -723,7 +723,6 @@ class DemoRun:
         current = self.results[-1]
         return {
             "service": SERVICE_NAME,
-            "catalog_id": CATALOG_ID,
             "repository": REPOSITORY,
             "profile": self.settings.profile,
             "region": self.settings.region,
@@ -894,7 +893,7 @@ def _exit_finding_feed(container: Any) -> Any:
             area="payments",
             title="t",
             severity="high",
-            source_system="Aud1",
+            source_system="internal-audit-lifecycle",
             approval_ref="rev-1",
             citations=(),
         )

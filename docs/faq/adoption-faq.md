@@ -11,7 +11,7 @@ console script), the `AUDIT_` env prefix (including the bare token that
 `infra/terraform/render.tf.json` carries, so Terraform sets the same variable names on the
 service), the Terraform `name_prefix` resource stem (`aud1-svc`) and the distribution / git id in
 one pass. Preview with `--dry-run`, apply with `--yes`, then recreate the venv, `make install`,
-and run `make gate`. The catalog id `Aud1` is left alone unless you pass `--catalog-id`, so a fork
+and run `make gate`. The catalog id `internal-audit-lifecycle` is left alone unless you pass `--catalog-id`, so a fork
 stays traceable to the entry it descends from. The script does the mechanical rename; the human
 decisions (region, IdP, the audit universe, the managed response mappings, the planning and
 finding policy, the eval golden set) are the checklist in `ADOPTING.md`.
@@ -32,14 +32,14 @@ Four things, and two of them are code here:
 
 1. **The audit universe and the upstream feeds.** `seed_universe()` builds an obviously fictional
    four-entity universe, and the `obligations`, `control_results`, `horizon` and `knowledge_base`
-   local adapters are fixtures that freeze the contracts Aud1 expects. Yours replace them.
+   local adapters are fixtures that freeze the contracts `internal-audit-lifecycle` expects. Yours replace them.
 2. **The managed response mappings.** Every managed read adapter reaches its real surface and then
    calls a `_parse` that raises, because the payload shape of a system that is not deployed yet
    cannot be guessed. `managed_readiness.py` names those five operations and refuses to start a
    `gcp` process while any of them is bound, so this is not something a fork can forget.
 3. **A durable store for the estate.** Offline the universe lives in process. A deployment needs a
    store bound behind a port of its own, carrying each estate's owning tenant on its rows.
-4. **The review console.** An Hrz7 deployment reachable at `HUMAN_REVIEW_URL`. The managed
+4. **The review console.** An `human-review-console` deployment reachable at `HUMAN_REVIEW_URL`. The managed
    router REFUSES to swallow an escalation when this is empty, so a fork cannot ship rule R8
    unwired and green.
 
@@ -55,7 +55,7 @@ store is exactly this job, and it is the port a real deployment adds first. See
 
 Two ports you may NOT add: a control catalog store and a remediation store.
 `tests/contract/test_dependency_contracts.py` fails the build on either, because the first would
-duplicate Aud2 and the second would duplicate Aud3, and the control-triad boundary is what keeps
+duplicate `continuous-controls-monitoring` and the second would duplicate `issue-remediation-capa`, and the control-triad boundary is what keeps
 the three systems from each holding a different version of the truth.
 
 ### Can I retune the planning and finding policy without touching code?
@@ -70,7 +70,7 @@ keyword bands in `domain/triage_service.py` are still bare module constants.
 
 ### Why is there a generic triage service in here?
 
-Because the render started from the template's triage vertical and the four Aud1 engines were
+Because the render started from the template's triage vertical and the four `internal-audit-lifecycle` engines were
 built alongside it. `domain/triage_service.py` (with `/v1/triage`, the CLI `triage` command and
 the `triage_case` agent tool) is also the shared R8 review envelope: `TriageResult` is what a
 plan or a finding is projected onto before it is routed, so the review path speaks one shape
@@ -108,7 +108,7 @@ diverge, keep the step keys and the `facts` dict the checks read.
 [`../practices-audit.md`](../practices-audit.md) carries the per-check verdict and the work list.
 The four that matter most before production: the managed `_parse` response mappings (until they
 land, the `gcp` profile refuses to boot at all), a durable estate store behind a port, binding the
-Hrz1 guardrail gateway before untrusted retrieved text reaches the drafter, and registering this
-repo's metric bundle with Hrz4 so `eval/run_eval.py --mode gate` has an authority to ask. The
+`agent-guardrail-gateway` before untrusted retrieved text reaches the drafter, and registering this
+repo's metric bundle with `model-quality-gate` so `eval/run_eval.py --mode gate` has an authority to ask. The
 Terraform stack is written, validated and tested against a mocked provider; it has never been
 applied.

@@ -81,14 +81,15 @@ CANONICAL_AREA = "payments"
 CANONICAL_KB_QUERY = RetrievalQuery(area=CANONICAL_AREA, text="reconciliation breaks")
 
 #: The approved-finding handover every finding-feed implementation is handed (rule: approval_ref
-#: is present, because a finding is emitted to Aud3 only after a human approved it).
+#: is present, because a finding is emitted to issue-remediation-capa only after a human approved
+#: it).
 CANONICAL_HANDOVER = IssueHandover(
     finding_id="find-canonical-payments",
     engagement="canonical",
     area=CANONICAL_AREA,
     title="Reconciliation breaks not escalated",
     severity="high",
-    source_system="Aud1",
+    source_system="internal-audit-lifecycle",
     approval_ref="rev-canonical-1",
     citations=(("wp-2025-pay-01", "Prior-year payments workpaper"),),
 )
@@ -215,23 +216,25 @@ CANONICAL_CALLS: dict[str, PortCase] = {
     "obligations": PortCase(
         invoke=_obligations_invoke,
         answered=_nonempty,
-        # No Rgc7 endpoint configured offline, so the managed adapter refuses before reaching out.
+        # No obligations-control-mapping endpoint configured offline, so the managed adapter refuses
+        # before reaching out.
         managed_refusal=(RuntimeError,),
-        detail="read the obligations Rgc7 holds for an area",
+        detail="read the obligations obligations-control-mapping holds for an area",
     ),
     "control_results": PortCase(
         invoke=_control_results_invoke,
         answered=_nonempty,
-        # No Aud2 endpoint configured offline, so the managed adapter refuses.
+        # No continuous-controls-monitoring endpoint configured offline, so the managed adapter
+        # refuses.
         managed_refusal=(RuntimeError,),
-        detail="read Aud2's control-effectiveness results for an area",
+        detail="read continuous-controls-monitoring's control-effectiveness results for an area",
     ),
     "horizon": PortCase(
         invoke=_horizon_invoke,
         answered=_nonempty,
-        # No Rsk1 endpoint configured offline, so the managed adapter refuses.
+        # No compliance-advisory endpoint configured offline, so the managed adapter refuses.
         managed_refusal=(RuntimeError,),
-        detail="read Rsk1's horizon signal counts",
+        detail="read compliance-advisory's horizon signal counts",
     ),
     "knowledge_base": PortCase(
         invoke=_knowledge_base_invoke,
@@ -243,9 +246,9 @@ CANONICAL_CALLS: dict[str, PortCase] = {
     "finding_feed": PortCase(
         invoke=_finding_feed_invoke,
         answered=_finding_feed_answered,
-        # No Aud3 endpoint configured offline, so the managed adapter refuses.
+        # No issue-remediation-capa endpoint configured offline, so the managed adapter refuses.
         managed_refusal=(RuntimeError,),
-        detail="emit one approved finding to Aud3",
+        detail="emit one approved finding to issue-remediation-capa",
     ),
     "tracer": PortCase(
         invoke=_tracer_invoke,
@@ -259,7 +262,7 @@ CANONICAL_CALLS: dict[str, PortCase] = {
     "evaluation": PortCase(
         invoke=_evaluation_invoke,
         answered=_evaluation_answered,
-        # The managed gate reaches Hrz4 over HTTP, which is unreachable offline.
+        # The managed gate reaches model-quality-gate over HTTP, which is unreachable offline.
         managed_refusal=(Exception,),
         detail="score one golden dataset through the promotion authority",
     ),

@@ -1,4 +1,4 @@
-"""Internal Audit Lifecycle Copilot (Aud1).
+"""Internal Audit Lifecycle Copilot (internal-audit-lifecycle).
 
 Copilot for the internal-audit engagement lifecycle with a deterministic planning engine.
 

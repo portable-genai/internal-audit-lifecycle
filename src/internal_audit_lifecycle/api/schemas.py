@@ -28,7 +28,8 @@ class TriageResponse(BaseModel):
     decision: str
     summary: str
     requires_human_review: bool
-    #: Where the escalation WENT (rule R8): the Hrz7 review id, or the local queue reference.
+    #: Where the escalation WENT (rule R8): the human-review-console review id, or the local queue
+    #: reference.
     #: Empty only when the result did not escalate. A caller can tell a routed escalation from
     #: a flag that stopped here, which is the whole point of the rule.
     review_ref: str = ""
@@ -199,7 +200,7 @@ class WorkpaperResponse(BaseModel):
 
 
 # --------------------------------------------------------------------------- #
-# Slice 4: finding write-up and the Aud3 handover
+# Slice 4: finding write-up and the issue-remediation-capa handover
 # --------------------------------------------------------------------------- #
 class FindingRequest(BaseModel):
     engagement: str = "payments-fy2027"
@@ -236,7 +237,8 @@ class FindingResponse(BaseModel):
 
 
 class HandoverRequest(FindingRequest):
-    #: The Hrz7 review reference proving a human approved the finding before it is emitted to Aud3.
+    #: The human-review-console review reference proving a human approved the finding before it is
+    #: emitted to issue-remediation-capa.
     approval_ref: str
 
 

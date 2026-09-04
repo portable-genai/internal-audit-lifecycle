@@ -1,8 +1,8 @@
 """Unit tests for the four audit-lifecycle engines: determinism, oracles and the boundaries.
 
-These are the substance of Aud1: the consequential numbers come from pure code, are replayable,
-and match an independent hand-computed expectation. The model narrates only, and the fieldwork
-engine refuses to draft when retrieval is empty.
+These are the substance of internal-audit-lifecycle: the consequential numbers come from pure code,
+are replayable, and match an independent hand-computed expectation. The model narrates only, and the
+fieldwork engine refuses to draft when retrieval is empty.
 """
 
 from __future__ import annotations
@@ -184,7 +184,7 @@ def test_handover_carries_the_approval_ref_and_no_remediation_state() -> None:
     result = FindingService().assess(_finding(5, 5))
     envelope = handover_envelope(result, approval_ref="rev-9")
     assert envelope.approval_ref == "rev-9"
-    assert envelope.source_system == "Aud1"
+    assert envelope.source_system == "internal-audit-lifecycle"
     # The envelope carries WHAT was found, never any remediation/RCA/closure field.
     fields = set(vars(envelope)) if hasattr(envelope, "__dict__") else set(envelope.__slots__)
     assert not (fields & {"remediation", "rca", "closure", "capa", "status"})

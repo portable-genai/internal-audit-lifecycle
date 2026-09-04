@@ -23,11 +23,15 @@ def main(argv: list[str] | None = None) -> int:
     triage_cmd.add_argument("subject")
     triage_cmd.add_argument("text")
     triage_cmd.add_argument("--actor", default="cli-user@bank.example")
-    triage_cmd.add_argument("--tenant", default="", help="Tenant partition asserted to Hrz7.")
+    triage_cmd.add_argument(
+        "--tenant", default="", help="Tenant partition asserted to human-review-console."
+    )
 
     plan_cmd = sub.add_parser("plan", help="Rank the audit universe into a risk-based annual plan.")
     plan_cmd.add_argument("--actor", default="cli-user@bank.example")
-    plan_cmd.add_argument("--tenant", default="", help="Tenant partition asserted to Hrz7.")
+    plan_cmd.add_argument(
+        "--tenant", default="", help="Tenant partition asserted to human-review-console."
+    )
 
     finding_cmd = sub.add_parser("finding", help="Write up a finding and route it for sign-off.")
     finding_cmd.add_argument("engagement")
@@ -36,7 +40,9 @@ def main(argv: list[str] | None = None) -> int:
     finding_cmd.add_argument("--impact", type=int, default=4)
     finding_cmd.add_argument("--likelihood", type=int, default=4)
     finding_cmd.add_argument("--actor", default="cli-user@bank.example")
-    finding_cmd.add_argument("--tenant", default="", help="Tenant partition asserted to Hrz7.")
+    finding_cmd.add_argument(
+        "--tenant", default="", help="Tenant partition asserted to human-review-console."
+    )
 
     args = parser.parse_args(argv)
     container = build_container()

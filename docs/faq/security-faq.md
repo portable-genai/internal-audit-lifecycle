@@ -71,8 +71,7 @@ passage and at least one must be cited (`domain/fieldwork.py`: `parse_draft`, `d
 A rejected reply is discarded, never repaired, and the deterministic fallback is used instead. The
 checks are module-level pure functions rather than private methods, deliberately, so the eval
 measures the RAW model output through the very same contract the service enforces: a metric that
-watched only the filtered output could never go red. Prompt-injection screening through the Hrz1
-guardrail gateway is **not** wired yet, and the retrieved passages are the untrusted text that
+watched only the filtered output could never go red. Prompt-injection screening through the `agent-guardrail-gateway` is **not** wired yet, and the retrieved passages are the untrusted text that
 makes it matter.
 
 ### How is the audit trail protected?
@@ -108,14 +107,14 @@ regular expression cannot tell apart.
 
 - **Login.** This repo authenticates nobody itself: the platform in front of it does, and the UI
   forwards the assertion without parsing or trusting a parsed copy.
-- **Injection defence and output filtering.** Owned by Hrz1; not bound yet.
-- **The review queue.** Owned by Hrz7; this repo produces escalations and routes them.
-- **The remediation lifecycle.** Owned by Aud3. Aud1 emits an approved finding one way and holds
+- **Injection defence and output filtering.** Owned by `agent-guardrail-gateway`; not bound yet.
+- **The review queue.** Owned by `human-review-console`; this repo produces escalations and routes them.
+- **The remediation lifecycle.** Owned by `issue-remediation-capa`. `internal-audit-lifecycle` emits an approved finding one way and holds
   no CAPA state; a contract test fails the build if a remediation store port appears.
 - **Durable storage of the estate.** Not bound today: offline the seed universe and the four
   fixture feeds live in process. A deployment needs a store behind a port, and its access control
   is part of that work.
 - **Network egress control.** VPC-SC governs access to Google APIs across perimeters, not
-  arbitrary internet egress. The private-egress rule that lets this service reach Rgc7, Aud2,
-  Rsk1, the workpaper store, Aud3 and the Hrz7 console and nothing else is an adopter network
+  arbitrary internet egress. The private-egress rule that lets this service reach `obligations-control-mapping`, `continuous-controls-monitoring`,
+  `compliance-advisory`, the workpaper store, `issue-remediation-capa` and the `human-review-console` and nothing else is an adopter network
   decision, called out in `COMPLIANCE.md` P-01.

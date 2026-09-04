@@ -1,12 +1,14 @@
-"""Slice 4: finding write-up, deterministic severity, and the Aud3 handover (the boundary).
+"""Slice 4: finding write-up, deterministic severity, and the issue-remediation-capa handover (the
+boundary).
 
-A finding's severity is PURE CODE from config-owned criteria (an impact x likelihood matrix
-banded by thresholds), never the model's opinion. Every finding sets ``requires_human_review``:
-the lead auditor signs off through Hrz7, and only on approval is the finding emitted on the Aud3
-feed as a normalized :class:`IssueHandover`. The control-triad boundary is enforced, not
-documented: Aud1 RAISES findings and holds NO remediation state. The ``finding_feed`` port is a
-one-way emit to Aud3; there is deliberately no remediation/CAPA store port in this repo, and the
-no-remediation-store contract test fails the build if one ever appears.
+A finding's severity is PURE CODE from config-owned criteria (an impact x likelihood matrix banded
+by thresholds), never the model's opinion. Every finding sets ``requires_human_review``: the lead
+auditor signs off through human-review-console, and only on approval is the finding emitted on the
+issue-remediation-capa feed as a normalized :class:`IssueHandover`. The control-triad boundary is
+enforced, not documented: internal-audit-lifecycle RAISES findings and holds NO remediation state.
+The ``finding_feed`` port is a one-way emit to issue-remediation-capa; there is deliberately no
+remediation/CAPA store port in this repo, and the no-remediation-store contract test fails the build
+if one ever appears.
 
 ``IssueHandover`` is the read-port DTO the ``finding_feed`` port emits, defined here next to the
 engine that produces it.
@@ -73,7 +75,8 @@ class Finding:
     """A written-up finding: deterministic severity, always escalated for lead-auditor sign-off.
 
     The field set overlaps the R8 review envelope (``subject`` / ``severity`` / ``decision`` /
-    ``summary`` / ``requires_human_review`` / ``citations``) so a surface routes it to Hrz7
+    ``summary`` / ``requires_human_review`` / ``citations``) so a surface routes it to
+    human-review-console
     without the pure domain importing a surface type.
     """
 
@@ -92,10 +95,12 @@ class Finding:
 
 @dataclass(frozen=True, slots=True)
 class IssueHandover:
-    """The normalized envelope emitted to Aud3 on approval (Aud3 owns everything after this).
+    """The normalized envelope emitted to issue-remediation-capa on approval (issue-remediation-capa
+    owns everything after this).
 
     It carries WHAT was found and its severity, plus the approval reference that authorised the
-    handover, and deliberately NO remediation, RCA or closure state: that lifecycle is Aud3's.
+    handover, and deliberately NO remediation, RCA or closure state: that lifecycle is
+    issue-remediation-capa's.
     """
 
     finding_id: str
@@ -111,7 +116,7 @@ class IssueHandover:
 class FindingService:
     """Write up a finding with a deterministic severity; hold no remediation state."""
 
-    _SOURCE_SYSTEM = "Aud1"
+    _SOURCE_SYSTEM = "internal-audit-lifecycle"
 
     def __init__(self, config: FindingConfig | None = None) -> None:
         self.config = config or FindingConfig()
@@ -152,10 +157,12 @@ class FindingService:
 
 
 def handover_envelope(finding: Finding, *, approval_ref: str) -> IssueHandover:
-    """Build the Aud3 handover envelope for an APPROVED finding.
+    """Build the issue-remediation-capa handover envelope for an APPROVED finding.
 
-    ``approval_ref`` is the Hrz7 review reference that authorised the handover: an empty one is a
-    programming error, because a finding is only emitted to Aud3 after a human approved it. The
+    ``approval_ref`` is the human-review-console review reference that authorised the handover: an
+    empty one is a
+    programming error, because a finding is only emitted to issue-remediation-capa after a human
+    approved it. The
     caller (the surface) enforces that; this function records the reference it was given.
     """
     return IssueHandover(

@@ -1,4 +1,4 @@
-# DEMO: Internal Audit Lifecycle Copilot (Aud1)
+# DEMO: Internal Audit Lifecycle Copilot (`internal-audit-lifecycle`)
 
 Everything here runs **offline**: no cloud project, no credentials, no API key, no browser
 engine, no bundler. That is the first thing to say out loud, because it is the claim the rest of

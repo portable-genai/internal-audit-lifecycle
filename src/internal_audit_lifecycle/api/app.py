@@ -1,4 +1,4 @@
-"""FastAPI application for Internal Audit Lifecycle Copilot (Aud1).
+"""FastAPI application for Internal Audit Lifecycle Copilot (internal-audit-lifecycle).
 
 Import-safe (the Container is built at request time, never at import; only ``Settings`` is read
 at import, to learn which identity adapter is bound, and no adapter is constructed), identity is
@@ -301,7 +301,8 @@ def triage(
 ) -> TriageResponse:
     """Triage a case; the audit actor is the verified principal, never the request body.
 
-    Rule R8: a result that sets ``requires_human_review`` is ROUTED to the Hrz7 console here,
+    Rule R8: a result that sets ``requires_human_review`` is ROUTED to the human-review-console
+    here,
     in the same request that produced it. Setting the flag is not the escalation; routing is.
     The maker is the verified principal, so the console records who originated the decision.
     """
@@ -343,10 +344,12 @@ def plan(
     request: PlanRequest,
     principal: Annotated[Principal, Depends(get_principal)],
 ) -> PlanResponse:
-    """Rank the audit universe into a risk-based annual plan; ROUTE the plan to Hrz7 (rule R8).
+    """Rank the audit universe into a risk-based annual plan; ROUTE the plan to human-review-console
+    (rule R8).
 
     The scores, bands and ranks are the deterministic engine's, computed from named additive
-    drivers over the universe enriched with Rsk1 horizon signals read through the ``horizon`` port.
+    drivers over the universe enriched with compliance-advisory horizon signals read through the
+    ``horizon`` port.
     The bound model only NARRATES the ranked plan, and the narrative is discarded unless every
     figure in it is one the engine produced. Approving an annual plan is consequential, so it is
     escalated to the lead auditor here, in the same request, with the verified principal as maker.
@@ -385,10 +388,13 @@ def scope(
     request: ScopeRequest,
     principal: Annotated[Principal, Depends(get_principal)],
 ) -> ScopeResponse:
-    """Assemble an engagement scope from Rgc7 obligations and Aud2 results, then sample.
+    """Assemble an engagement scope from obligations-control-mapping and
+    continuous-controls-monitoring results, then sample.
 
-    Obligations come from Rgc7 (the system of record, read-only) and control-effectiveness results
-    from Aud2, both through read ports; this repo keeps NO control catalog of its own. The sample
+    Obligations come from obligations-control-mapping (the system of record, read-only) and
+    control-effectiveness results
+    from continuous-controls-monitoring, both through read ports; this repo keeps NO control catalog
+    of its own. The sample
     is deterministic: the same population, seed and ``as_of`` always yield byte-identical selection.
     """
     _authorize(principal)
@@ -434,8 +440,10 @@ def finding(
     """Write up a finding with a deterministic severity and ROUTE it for lead-auditor sign-off.
 
     Severity is pure code (impact x likelihood banded by config), never the model's opinion. Every
-    finding is escalated to Hrz7 here; Aud1 holds NO remediation state, and the finding reaches
-    Aud3 only through the separate ``/v1/finding/handover`` emit, and only after this review is
+    finding is escalated to human-review-console here; internal-audit-lifecycle holds NO remediation
+    state, and the finding reaches
+    issue-remediation-capa only through the separate ``/v1/finding/handover`` emit, and only after
+    this review is
     approved.
     """
     _authorize(principal)
@@ -470,10 +478,13 @@ def finding_handover(
     request: HandoverRequest,
     principal: Annotated[Principal, Depends(get_principal)],
 ) -> HandoverResponse:
-    """Emit an APPROVED finding to Aud3 (the one-way boundary). Requires an approval reference.
+    """Emit an APPROVED finding to issue-remediation-capa (the one-way boundary). Requires an
+    approval reference.
 
-    A finding is emitted to Aud3 only after a human approved it through Hrz7, so ``approval_ref``
-    is mandatory. Aud1 owns nothing after this: the remediation lifecycle is Aud3's, and there is
+    A finding is emitted to issue-remediation-capa only after a human approved it through
+    human-review-console, so ``approval_ref``
+    is mandatory. internal-audit-lifecycle owns nothing after this: the remediation lifecycle is
+    issue-remediation-capa's, and there is
     no CAPA store in this repo. The finding is re-derived deterministically from the same inputs,
     so the emitted severity is exactly the one the reviewer saw.
     """
@@ -481,7 +492,10 @@ def finding_handover(
     if not request.approval_ref.strip():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="approval_ref is required: a finding reaches Aud3 only after Hrz7 approval",
+            detail=(
+                "approval_ref is required: a finding reaches issue-remediation-capa only after "
+                "human-review-console approval"
+            ),
         )
     container = _container()
     result = FindingService().assess(

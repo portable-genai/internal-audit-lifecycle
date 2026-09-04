@@ -17,8 +17,8 @@ installed at all. The planning, sampling and severity arithmetic is stdlib, not 
 
 | Profile | What it is | Who it is for |
 |---|---|---|
-| `local` | SDK-free offline stack: seeded dev personas, a hash-chained SQLite WORM audit log, fixture feeds for the Rgc7, Aud2, Rsk1 and workpaper reads, an in-memory Aud3 outbox, a deterministic stub narrator | dev, test, CI, and the offline demo |
-| `gcp` | the managed stack: IAP identity, Cloud Logging WORM, Gemini narration, authenticated HTTPS clients to the sibling services and to the Hrz7 console | a managed deployment |
+| `local` | SDK-free offline stack: seeded dev personas, a hash-chained SQLite WORM audit log, fixture feeds for the `obligations-control-mapping`, `continuous-controls-monitoring`, `compliance-advisory` and workpaper reads, an in-memory `issue-remediation-capa` outbox, a deterministic stub narrator | dev, test, CI, and the offline demo |
+| `gcp` | the managed stack: IAP identity, Cloud Logging WORM, Gemini narration, authenticated HTTPS clients to the sibling services and to the `human-review-console` | a managed deployment |
 | `onprem` | fail-fast `NotImplementedError` placeholders | the sovereign exit: a client binds its own in-country implementations here |
 
 `AUDIT_PROFILE` selects the family. Unset means the offline adapters bind but nobody chose them,

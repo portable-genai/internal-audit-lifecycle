@@ -1,6 +1,6 @@
 # ui: the embeddable micro-frontend
 
-A Next.js App Router console for Internal Audit Lifecycle Copilot (Aud1).
+A Next.js App Router console for Internal Audit Lifecycle Copilot (`internal-audit-lifecycle`).
 It runs standalone for a demo and embeds into a client's existing web application as an iframe,
 with the same security posture either way.
 

@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
-"""Evaluation gate for Internal Audit Lifecycle Copilot (Aud1).
+"""Evaluation gate for Internal Audit Lifecycle Copilot (internal-audit-lifecycle).
 
 Two named layers via ``--mode`` (the scaffold is ``agent_eval_kit.eval_main``):
 
 * **smoke** (default) - the offline pre-merge check CI runs on every change. It drives the REAL
   deterministic engines (planning, sampling, finding severity) against INDEPENDENT hand-computed
-  oracles, and the RAW local narrator through the same grounding contract the service enforces,
-  with SDK-free local adapters.
-* **gate** - the promotion verdict from the shared Hrz4 authority (requires the ``gcp`` profile),
-  via ``agent_eval_kit.PromotionGateClient``.
+  oracles, and the RAW local narrator through the same grounding contract the service enforces, with
+  SDK-free local adapters. * **gate** - the promotion verdict from the shared model-quality-gate
+  authority (requires the ``gcp`` profile), via ``agent_eval_kit.PromotionGateClient``.
 
 Every engine metric scores the engine against the dataset's OWN expected outcome, never the
 engine's own verdict, so each can go red (see ``tests/unit/test_not_falsely_green.py``). Exit is
@@ -85,7 +84,8 @@ THRESHOLDS: dict[str, float] = {
     "plan_narration_groundedness": 0.99,
     "workpaper_grounding": 0.99,
 }
-#: The registered Hrz4 metric bundle for this vertical (Hrz4 owns the metrics + thresholds).
+#: The registered model-quality-gate metric bundle for this vertical (model-quality-gate owns the
+#: metrics + thresholds).
 _BUNDLE = "internal-audit-lifecycle"
 
 #: The hand-computed stratification oracle for the payments engagement (slice 2): the failing
@@ -318,6 +318,6 @@ if __name__ == "__main__":
             smoke=run_smoke,
             gate=run_gate,
             default_dataset=DEFAULT_DATASET,
-            description="Offline / Hrz4 evaluation gate for Aud1.",
+            description="Offline / model-quality-gate for internal-audit-lifecycle.",
         )
     )

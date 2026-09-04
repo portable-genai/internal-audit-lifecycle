@@ -7,7 +7,7 @@ here. Read it first. This file carries only what is specific to this one.
 
 ## What this is
 
-Internal Audit Lifecycle Copilot (Aud1): Copilot for the internal-audit engagement lifecycle with a deterministic planning engine.
+Internal Audit Lifecycle Copilot (`internal-audit-lifecycle`): Copilot for the internal-audit engagement lifecycle with a deterministic planning engine.
 Rendered from `hex-service-template`, so it starts at reference parity rather than converging
 toward it. Package `internal_audit_lifecycle`, environment prefix
 `AUDIT`, region `asia-southeast1`.

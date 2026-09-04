@@ -13,10 +13,10 @@ audience; skim the one that matches your role.
 | [compliance-faq.md](compliance-faq.md) | Compliance / model risk / second line | why a plan rank and a finding severity are defensible, maker-checker, residency, retention, model-risk evidence |
 
 These FAQs deliberately do **not** re-document capabilities owned by sibling systems in the GRC
-catalog. Where a concern belongs to another repo (the obligation register Rgc7, the control
-effectiveness results Aud2, the regulatory change horizon Rsk1, the remediation lifecycle Aud3,
-the guardrail gateway Hrz1, the knowledge base Hrz2, the agent registry Hrz3, the eval platform
-Hrz4, observability and the WORM sink Hrz5, the human-review console Hrz7), the FAQ points at it
+catalog. Where a concern belongs to another repo (the obligation register `obligations-control-mapping`, the control
+effectiveness results `continuous-controls-monitoring`, the regulatory change horizon `compliance-advisory`, the remediation lifecycle `issue-remediation-capa`,
+the guardrail gateway `agent-guardrail-gateway`, the knowledge base `enterprise-knowledge-base`, the agent registry `agent-registry`, the eval platform
+`model-quality-gate`, observability and the WORM sink `agent-observability`, the human-review console `human-review-console`), the FAQ points at it
 and explains the boundary rather than duplicating it. See
 [features-faq.md](features-faq.md) for the full "what this repo owns vs what it integrates" map.
 

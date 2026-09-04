@@ -1,4 +1,5 @@
-"""GCP ControlResultsPort adapter: reach Aud2 over HTTPS, refusing when unconfigured.
+"""GCP ControlResultsPort adapter: reach continuous-controls-monitoring over HTTPS, refusing when
+unconfigured.
 
 The endpoint is per-deployment config (AUDIT_CONTROL_RESULTS_URL), read three-state: UNSET and
 SET-AND-EMPTY both arrive as ``""``, and this adapter REFUSES every call rather than reaching a
@@ -14,7 +15,9 @@ from ...domain.scoping import ControlResult
 
 
 class CloudControlResultsAdapter:
-    """Reach Aud2 over its authenticated HTTPS surface, or refuse when unconfigured."""
+    """Reach continuous-controls-monitoring over its authenticated HTTPS surface, or refuse when
+    unconfigured.
+    """
 
     def __init__(self, settings: Settings) -> None:
         self._settings = settings
@@ -23,14 +26,15 @@ class CloudControlResultsAdapter:
         url = self._settings.control_results_url
         if not url:
             raise RuntimeError(
-                "Aud2 endpoint is unconfigured: set AUDIT_CONTROL_RESULTS_URL to the deployment "
+                "continuous-controls-monitoring endpoint is unconfigured: set "
+                "AUDIT_CONTROL_RESULTS_URL to the deployment "
                 "URL. There is no default host to fall back to."
             )
         return self._reach(url, area)
 
     def _reach(
         self, url: str, area: str
-    ) -> tuple[ControlResult, ...]:  # pragma: no cover - needs live Aud2
+    ) -> tuple[ControlResult, ...]:  # pragma: no cover - needs live continuous-controls-monitoring
         # Lazy import: absent offline and in CI, so a managed run without the SDK raises here.
         from google.auth import default as google_auth_default
         from google.auth.transport.requests import AuthorizedSession
@@ -42,5 +46,9 @@ class CloudControlResultsAdapter:
         return self._parse(response.json())
 
     @staticmethod
-    def _parse(payload: object) -> tuple[ControlResult, ...]:  # pragma: no cover - needs live Aud2
-        raise NotImplementedError("wire Aud2 payload parsing when its live surface is available")
+    def _parse(
+        payload: object,
+    ) -> tuple[ControlResult, ...]:  # pragma: no cover - needs live continuous-controls-monitoring
+        raise NotImplementedError(
+            "wire continuous-controls-monitoring payload parsing when its live surface is available"
+        )
