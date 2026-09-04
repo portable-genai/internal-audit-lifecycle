@@ -12,8 +12,8 @@ produce every number, and four rules make those numbers mean something:
 - **Every score is decomposed.** A `PlanEntry` carries its `PlanDriver` list, each driver naming
   its points and the calculation behind them, so a challenge lands on a specific driver rather
   than on an opaque total.
-- **The inputs belong to the systems that own them.** The control-effectiveness trend is Aud2's
-  verdict and the horizon count is Rsk1's, both read through ports. Aud1 recomputes neither, so
+- **The inputs belong to the systems that own them.** The control-effectiveness trend is `continuous-controls-monitoring`'s
+  verdict and the horizon count is `compliance-advisory`'s, both read through ports. `internal-audit-lifecycle` recomputes neither, so
   three systems cannot disagree about the same fact.
 - **The sample is replayable.** The same population, seed and `as_of` yield a byte-identical
   selection, because each stratum's RNG is seeded from a SHA-256 of those three values rather than
@@ -34,8 +34,8 @@ result, and `tests/unit/test_review_routing.py` asserts the routing rather than 
 the managed profile the router REFUSES when no console is configured, so a deployment cannot
 swallow an escalation silently.
 
-The handover to Aud3 is the second gate: `POST /v1/finding/handover` rejects an empty
-`approval_ref`, so a finding reaches the remediation tracker only after the Hrz7 review that
+The handover to `issue-remediation-capa` is the second gate: `POST /v1/finding/handover` rejects an empty
+`approval_ref`, so a finding reaches the remediation tracker only after the `human-review-console` review that
 authorised it.
 
 ### Where does the data live, and is residency enforced or just documented?
@@ -98,8 +98,8 @@ discarded on failure, with a deterministic fallback used instead. The offline ev
 metrics on every change, two of which (`plan_narration_groundedness` and `workpaper_grounding`)
 measure raw model output rather than filtered output so they can go red. What is NOT yet in place:
 the managed model id is a pinned default rather than a confirmed deployment decision, there is no
-token budget, rate limit or kill switch, no live-model eval run has been registered with the Hrz4
-promotion gate, and prompt-injection screening through Hrz1 is not bound. Until those close, the
+token budget, rate limit or kill switch, no live-model eval run has been registered with the `model-quality-gate`
+promotion gate, and prompt-injection screening through `agent-guardrail-gateway` is not bound. Until those close, the
 managed narrator is not production-cleared and the deterministic path is what should be relied on.
 
 ### Which regulations does this claim to satisfy?
@@ -117,6 +117,6 @@ weights and band floors decide which parts of the bank get audited this year.
 The `Partial` and `TODO (repo owner)` rows in `COMPLIANCE.md`, each of which names exactly what is
 missing. The ones that need a risk acceptance if you go live without them: the managed `_parse`
 response mappings and the durable estate store with its object-level authorisation, rule R1 (the
-Hrz1 guardrail binding), rule R5 and P-08 (the Hrz4 metric bundle), P-10 (timeouts, circuit
+`agent-guardrail-gateway` binding), rule R5 and P-08 (the `model-quality-gate` metric bundle), P-10 (timeouts, circuit
 breaker and a documented kill switch), and P-01's private-egress rule, which depends on your own
 network rather than on this repo.

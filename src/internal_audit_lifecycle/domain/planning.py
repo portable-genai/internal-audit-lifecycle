@@ -1,12 +1,13 @@
 """Slice 1: the risk-based annual audit-planning engine (pure, replayable).
 
-The consequential judgement (which entities in the audit universe rank highest for the annual
-plan, and in what band) is PURE CODE over a frozen, config-owned policy object, cribbing the
-additive named-driver shape of Rsk1's horizon materiality engine: each entity's score is the sum
-of named :class:`PlanDriver` contributions (inherent risk, the age of the last assurance, the
-Aud2 control-effectiveness trend, and Rsk1 horizon pressure), clamped and banded by config-owned
-thresholds. The same universe always yields the same ranked plan; an LLM may draft the plan
-NARRATIVE (see ``narration.py``) but never produces a score, a band or a rank.
+The consequential judgement (which entities in the audit universe rank highest for the annual plan,
+and in what band) is PURE CODE over a frozen, config-owned policy object, cribbing the additive
+named-driver shape of compliance-advisory's horizon materiality engine: each entity's score is the
+sum of named :class:`PlanDriver` contributions (inherent risk, the age of the last assurance, the
+continuous-controls-monitoring control-effectiveness trend, and compliance-advisory horizon
+pressure), clamped and banded by config-owned thresholds. The same universe always yields the same
+ranked plan; an LLM may draft the plan NARRATIVE (see ``narration.py``) but never produces a score,
+a band or a rank.
 
 ``AuditPlanConfig`` holds the numbers (B4: bank-owned policy in config, defaults are the
 reference policy). Nothing here imports a framework, a cloud SDK or a port.
@@ -40,7 +41,8 @@ _BAND_ORDER: tuple[Severity, ...] = (
     Severity.CRITICAL,
 )
 
-#: Reference control-effectiveness trend points (from Aud2). A declining trend is the strongest
+#: Reference control-effectiveness trend points (from continuous-controls-monitoring). A declining
+#: trend is the strongest
 #: single signal that an area needs an audit; an improving one earns a discount.
 _DEFAULT_TREND_POINTS: dict[str, int] = {
     "declining": 26,
@@ -63,8 +65,9 @@ class AuditEntity:
     """One entity in the audit universe (obviously fictional in the seed).
 
     The fields are the named-driver INPUTS, sourced from: the firm's inherent-risk register
-    (``inherent_factor``), prior audit findings (``prior_finding_age_days``), Aud2's
-    control-effectiveness trend (``control_trend``) and Rsk1's horizon change-feed
+    (``inherent_factor``), prior audit findings (``prior_finding_age_days``),
+    continuous-controls-monitoring's
+    control-effectiveness trend (``control_trend``) and compliance-advisory's horizon change-feed
     (``horizon_signals``). The engine, not the model, turns them into a score.
     """
 
@@ -80,9 +83,11 @@ class AuditEntity:
 
 @dataclass(frozen=True, slots=True)
 class HorizonSignal:
-    """A per-entity horizon-pressure count read from Rsk1's change-feed (the ``horizon`` port).
+    """A per-entity horizon-pressure count read from compliance-advisory's change-feed (the
+    ``horizon`` port).
 
-    Rsk1 is the SINGLE source of regulatory-horizon change; Aud1 never recomputes it. The count
+    compliance-advisory is the SINGLE source of regulatory-horizon change; internal-audit-lifecycle
+    never recomputes it. The count
     is the number of open change items touching the entity's area, and the planner overlays it
     onto the universe row (see :func:`enrich_universe`) rather than trusting a stale stored value.
     """
@@ -95,10 +100,11 @@ class HorizonSignal:
 def enrich_universe(
     entities: tuple[AuditEntity, ...], signals: tuple[HorizonSignal, ...]
 ) -> tuple[AuditEntity, ...]:
-    """Overlay the freshly-read Rsk1 horizon signal counts onto the universe rows.
+    """Overlay the freshly-read compliance-advisory horizon signal counts onto the universe rows.
 
     An entity with a matching :class:`HorizonSignal` takes the read count; one with none keeps
-    its stored value. This is where the Rsk1 dependency enters the deterministic engine, through
+    its stored value. This is where the compliance-advisory dependency enters the deterministic
+    engine, through
     the ``horizon`` port, so the planner never has to reach a feed itself.
     """
     by_id = {s.entity_id: s for s in signals}
@@ -125,7 +131,9 @@ def enrich_universe(
 
 @dataclass(frozen=True, slots=True)
 class PlanDriver:
-    """One named, additive contribution to an entity's plan score (Rsk1's driver shape)."""
+    """One named, additive contribution to an entity's plan score (compliance-advisory's driver
+    shape).
+    """
 
     name: str
     points: int
@@ -151,7 +159,8 @@ class AnnualPlan:
 
     The field set overlaps the R8 review envelope on purpose (``subject`` / ``severity`` /
     ``decision`` / ``summary`` / ``requires_human_review`` / ``citations``) so a surface can route
-    it to Hrz7 without the pure domain importing a surface type. Approving an annual plan is
+    it to human-review-console without the pure domain importing a surface type. Approving an annual
+    plan is
     consequential, so ``requires_human_review`` is always True.
     """
 
@@ -176,7 +185,7 @@ class AuditPlanConfig:
     prior_finding_points_per_year: int = 9
     max_prior_finding_points: int = 27
     trend_points: dict[str, int] = field(default_factory=lambda: dict(_DEFAULT_TREND_POINTS))
-    horizon_points: int = 7  # per open Rsk1 horizon signal on the entity's area
+    horizon_points: int = 7  # per open compliance-advisory horizon signal on the entity's area
     max_horizon_points: int = 21
     band_thresholds: dict[str, int] = field(default_factory=lambda: dict(_DEFAULT_BAND_THRESHOLDS))
     #: Band at or above which the plan flags the entity for priority scheduling in the narrative.
@@ -239,7 +248,10 @@ class AnnualPlanner:
             PlanDriver(
                 name="control_trend",
                 points=trend_points,
-                detail=f"Aud2 trend '{entity.control_trend}' scored {trend_points} by policy",
+                detail=(
+                    f"continuous-controls-monitoring trend '{entity.control_trend}' scored "
+                    f"{trend_points} by policy"
+                ),
             )
         )
 
@@ -250,7 +262,8 @@ class AnnualPlanner:
                 name="horizon_pressure",
                 points=horizon,
                 detail=(
-                    f"{signals} open Rsk1 horizon signal(s) at {cfg.horizon_points} each, "
+                    f"{signals} open compliance-advisory horizon signal(s) at {cfg.horizon_points} "
+                    f"each, "
                     f"capped at {cfg.max_horizon_points}"
                 ),
             )

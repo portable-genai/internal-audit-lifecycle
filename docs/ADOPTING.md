@@ -1,6 +1,6 @@
 # Adopting this repo as your base
 
-This repository (Aud1, Internal Audit Lifecycle Copilot) is a **common base** that a bank or other
+This repository (`internal-audit-lifecycle`, Internal Audit Lifecycle Copilot) is a **common base** that a bank or other
 regulated institution forks to build its own **internal-audit engagement lifecycle service**: the
 risk-based annual plan, the engagement scope and its replayable sample, the grounded working
 paper, and the finding write-up that hands over to the issue and CAPA tracker. It ships a reusable
@@ -27,12 +27,12 @@ physical module split with an enforced dependency direction (practices-audit che
 | Layer | Where | For your own audit function |
 |---|---|---|
 | **Vertical-neutral machinery** | `domain/kernel.py` (`Citation`, `AuditEvent`, `Severity`, `Decision`, `utcnow`), every Protocol in `ports/`, the container wiring in `config.py` | keep untouched |
-| **The four engines** | `domain/planning.py` (additive named drivers, clamp, band, rank), `domain/scoping.py` (`ScopingService` plus `stratified_sample`), `domain/fieldwork.py` (retrieve, draft, validate citations), `domain/findings.py` (impact x likelihood banded, then the Aud3 handover envelope) | keep the shapes, retune the numbers |
-| **Policy (your numbers and rules)** | `AuditPlanConfig` in `domain/planning.py` (driver weights and caps, the Aud2 trend points, the band floors, the priority band), `FindingConfig` in `domain/findings.py` (the scale bounds and the severity floors), the jurisdiction list in `domain/pii.py`, the metric thresholds in `eval/run_eval.py` | change deliberately (see section 4) |
+| **The four engines** | `domain/planning.py` (additive named drivers, clamp, band, rank), `domain/scoping.py` (`ScopingService` plus `stratified_sample`), `domain/fieldwork.py` (retrieve, draft, validate citations), `domain/findings.py` (impact x likelihood banded, then the `issue-remediation-capa` handover envelope) | keep the shapes, retune the numbers |
+| **Policy (your numbers and rules)** | `AuditPlanConfig` in `domain/planning.py` (driver weights and caps, the `continuous-controls-monitoring` trend points, the band floors, the priority band), `FindingConfig` in `domain/findings.py` (the scale bounds and the severity floors), the jurisdiction list in `domain/pii.py`, the metric thresholds in `eval/run_eval.py` | change deliberately (see section 4) |
 | **Vertical (the estate content)** | `seed_universe()` in `domain/planning.py`, the fixture feeds in `adapters/local/{obligations,control_results,horizon,knowledge_base}.py`, the vertical models in `domain/models.py`, the prompts in `domain/narration.py` and `domain/fieldwork.py`, the eval golden set and its two oracles | reseed and rewrite for your estate |
 
 If your product is another *engagement lifecycle* service, the hexagon, the three profiles, the
-deterministic-verdict pattern, the eval gate and the Hrz7 review routing transfer directly; you
+deterministic-verdict pattern, the eval gate and the `human-review-console` review routing transfer directly; you
 replace the audit universe and the upstream feeds and retune the planning and severity policy.
 
 ## 2. Core-vs-adopter-owned files (so upstream merges stay mechanical)
@@ -79,7 +79,7 @@ make gate
 your resource stem. `--resource` is validated against the same `^[a-z][a-z0-9-]{2,18}$` regex the
 Terraform `name_prefix` variable enforces, so a stem the stack would refuse fails here instead of
 at plan time. Add `--include-docs` to sweep Markdown prose too. The script skips itself, so the
-renamer is never left half-rewritten. The catalog id `Aud1` is left alone unless you pass
+renamer is never left half-rewritten. The catalog id `internal-audit-lifecycle` is left alone unless you pass
 `--catalog-id`, so a fork stays traceable to the entry it descends from. The script deliberately
 does NOT touch the human decisions below.
 
@@ -98,7 +98,7 @@ does NOT touch the human decisions below.
 3. **The audit universe and the upstream feeds.** `seed_universe()` in `domain/planning.py` builds
    an obviously fictional four-entity universe, and the local adapters for the `obligations`,
    `control_results`, `horizon` and `knowledge_base` ports are fixtures that freeze the contracts
-   Aud1 expects from Rgc7, Aud2, Rsk1 and the governed workpaper store. That seed is a shape, not
+   `internal-audit-lifecycle` expects from `obligations-control-mapping`, `continuous-controls-monitoring`, `compliance-advisory` and the governed workpaper store. That seed is a shape, not
    your estate. Replace it, and decide where the universe lives in a deployment: the offline
    profile holds it in process, so a deployment needs a durable store bound behind a port of its
    own.
@@ -143,34 +143,34 @@ the audit engagement lifecycle up to an approved finding, and of nothing after t
 integrates rather than rebuilds (see [`faq/features-faq.md`](faq/features-faq.md) for the full
 map):
 
-- **Rgc7** obligations and control mapping: the obligation register a scope is built from, read
-  through `ObligationsReadPort` (`AUDIT_OBLIGATIONS_URL`). Aud1 keeps no register.
-- **Aud2** control testing and effectiveness: the pass / partial / fail verdicts a scope reads,
-  through `ControlResultsReadPort` (`AUDIT_CONTROL_RESULTS_URL`). Aud1 keeps NO control catalog,
+- `obligations-control-mapping` and control mapping: the obligation register a scope is built from, read
+  through `ObligationsReadPort` (`AUDIT_OBLIGATIONS_URL`). `internal-audit-lifecycle` keeps no register.
+- `continuous-controls-monitoring` control testing and effectiveness: the pass / partial / fail verdicts a scope reads,
+  through `ControlResultsReadPort` (`AUDIT_CONTROL_RESULTS_URL`). `internal-audit-lifecycle` keeps NO control catalog,
   and `tests/contract/test_dependency_contracts.py::test_no_control_catalog_store_port_is_registered`
   fails the build if one appears.
-- **Rsk1** compliance assistant: the regulatory change horizon that feeds the planner's
-  `horizon_pressure` driver, through `HorizonReadPort` (`AUDIT_HORIZON_URL`). Aud1 never
+- `compliance-advisory`: the regulatory change horizon that feeds the planner's
+  `horizon_pressure` driver, through `HorizonReadPort` (`AUDIT_HORIZON_URL`). `internal-audit-lifecycle` never
   recomputes the horizon.
-- **Aud3** issue remediation and CAPA: everything AFTER an approved finding. `FindingFeedPort`
-  (`AUDIT_AUD3_FEED_URL`) is a one-way emit that requires an Hrz7 approval reference, and
+- `issue-remediation-capa` issue remediation and CAPA: everything AFTER an approved finding. `FindingFeedPort`
+  (`AUDIT_AUD3_FEED_URL`) is a one-way emit that requires an `human-review-console` approval reference, and
   `test_no_remediation_store_port_is_registered` fails the build if this repo ever grows a
   remediation store.
-- **Hrz7** human-review / maker-checker console: every consequential plan, finding and escalated
+- `human-review-console` human-review / maker-checker console: every consequential plan, finding and escalated
   triage is routed to it over the shared `review-kit` (rule R8); you wire your endpoint
   (`HUMAN_REVIEW_URL`), you do not re-implement the console.
-- **Hrz5** observability plus immutable WORM audit: audit events and trace spans go to it through
+- `agent-observability` plus immutable WORM audit: audit events and trace spans go to it through
   `AuditSinkPort` and `ObservabilityTracerPort`.
-- **Hrz4** AI-quality / model-risk gate: owns promotion. `eval/run_eval.py --mode gate` is the
+- `model-quality-gate` AI-quality / model-risk gate: owns promotion. `eval/run_eval.py --mode gate` is the
   client half and refuses to run off the managed profile.
-- **Hrz3** agent registry: this agent publishes its A2A card at
+- `agent-registry`: this agent publishes its A2A card at
   `/.well-known/agent-card.json`; register it rather than inventing a discovery mechanism.
-- **Hrz2** enterprise knowledge base: `KnowledgeBaseReadPort` is the retrieval seam fieldwork
+- `enterprise-knowledge-base`: `KnowledgeBaseReadPort` is the retrieval seam fieldwork
   grounds against. Today the managed adapter points at whatever governed workpaper store
-  `AUDIT_KNOWLEDGE_BASE_URL` names; binding it to Hrz2 instead is the rule R3 decision, and it is
+  `AUDIT_KNOWLEDGE_BASE_URL` names; binding it to `enterprise-knowledge-base` instead is the rule R3 decision, and it is
   the one your corpus governance probably wants.
 
-The guardrail gateway (Hrz1) is **not** integrated today. It becomes mandatory the moment
+The guardrail gateway (`agent-guardrail-gateway`) is **not** integrated today. It becomes mandatory the moment
 untrusted free text reaches the drafter, which the fieldwork path already carries in its retrieved
 passages: see rule R1 in [`../COMPLIANCE.md`](../COMPLIANCE.md).
 
@@ -190,7 +190,7 @@ passages: see rule R1 in [`../COMPLIANCE.md`](../COMPLIANCE.md).
 - [ ] Replaced every synthetic fixture.
 - [ ] Rebuilt the eval golden set and both oracles for your estate.
 - [ ] Reviewed the deploy posture (Dockerfile, Terraform, `retention_days`, bind address).
-- [ ] Wired your Hrz7 review endpoint and decided which sibling services you integrate vs stub.
+- [ ] Wired your `human-review-console` review endpoint and decided which sibling services you integrate vs stub.
 - [ ] Read [`model-card.md`](model-card.md) and closed its remaining controls before enabling the
       managed narrator.
 - [ ] Recorded your baseline upstream tag so you can take future fixes.

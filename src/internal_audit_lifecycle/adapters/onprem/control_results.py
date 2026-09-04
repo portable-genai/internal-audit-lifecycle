@@ -1,8 +1,8 @@
 """On-prem ControlResultsPort adapter: fail-fast portability placeholder (P-12).
 
-The client wires its own Aud2 link behind this seam. Until then it refuses at call time
-rather than pretending, so a placeholder never becomes a silent empty answer that would look
-like a real result.
+The client wires its own continuous-controls-monitoring link behind this seam. Until then it refuses
+at call time rather than pretending, so a placeholder never becomes a silent empty answer that would
+look like a real result.
 """
 
 from __future__ import annotations
@@ -12,7 +12,9 @@ from ...domain.scoping import ControlResult
 
 
 class OnPremControlResultsAdapter:
-    """Satisfies the port but refuses at call time: the client binds its own Aud2 link."""
+    """Satisfies the port but refuses at call time: the client binds its own
+    continuous-controls-monitoring link.
+    """
 
     def __init__(self, settings: Settings) -> None:
         self._settings = settings
@@ -20,5 +22,5 @@ class OnPremControlResultsAdapter:
     def results_for(self, area: str) -> tuple[ControlResult, ...]:
         raise NotImplementedError(
             "on-prem control_results is a portability placeholder: bind the client's own "
-            "Aud2 connection (see docs/onprem-migration.md)"
+            "continuous-controls-monitoring connection (see docs/onprem-migration.md)"
         )

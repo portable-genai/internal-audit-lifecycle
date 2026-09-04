@@ -1,9 +1,9 @@
 """The A2A discovery card: what this agent can be asked to do, in one machine-readable place.
 
-Served at ``/.well-known/agent-card.json`` and registrable with Hrz3 (rule R4). The card is
-built from the SAME tool table the runtime binds, so an agent cannot advertise a skill it does
-not implement or implement one it never advertises; ``tests/unit/test_agent_surface.py`` fails
-the build when the two disagree.
+Served at ``/.well-known/agent-card.json`` and registrable with agent-registry (rule R4). The card
+is built from the SAME tool table the runtime binds, so an agent cannot advertise a skill it does
+not implement or implement one it never advertises; ``tests/unit/test_agent_surface.py`` fails the
+build when the two disagree.
 
 Pure: domain types and stdlib only, no ADK and no cloud SDK, so the card can be generated and
 inspected offline.
@@ -66,7 +66,8 @@ SKILLS: tuple[AgentSkill, ...] = (
         name="Risk-based annual planning",
         description=(
             "Rank the audit universe into a risk-based annual plan by a deterministic "
-            "named-driver engine (inherent risk, prior-finding age, Aud2 control trend, Rsk1 "
+            "named-driver engine (inherent risk, prior-finding age, continuous-controls-monitoring "
+            "control trend, compliance-advisory "
             "horizon pressure), narrate it, and ROUTE the plan to human sign-off (rule R8)."
         ),
     ),
@@ -75,8 +76,9 @@ SKILLS: tuple[AgentSkill, ...] = (
         name="Finding write-up",
         description=(
             "Compute a finding's severity by pure code (impact x likelihood banded by config) "
-            "and ROUTE it to lead-auditor sign-off (rule R8). Aud1 holds no remediation state; "
-            "the finding reaches Aud3 only after approval."
+            "and ROUTE it to lead-auditor sign-off (rule R8). internal-audit-lifecycle holds no "
+            "remediation state; "
+            "the finding reaches issue-remediation-capa only after approval."
         ),
     ),
 )
@@ -88,7 +90,7 @@ SKILLS: tuple[AgentSkill, ...] = (
 _DESCRIPTION = " ".join(
     (
         "Internal Audit Lifecycle Copilot",
-        "(Aud1).",
+        "(internal-audit-lifecycle).",
         "Deterministic decision, cited output, redact-before-audit, and every",
         "consequential result routed to a human reviewer.",
     )

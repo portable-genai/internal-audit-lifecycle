@@ -1,9 +1,11 @@
-"""Local ControlResultsReadPort: a deterministic fixture of Aud2's effectiveness results.
+"""Local ControlResultsReadPort: a deterministic fixture of continuous-controls-monitoring's
+effectiveness results.
 
-Aud2 is not built yet, so this freezes the contract Aud1 expects from it (a fixture test pins the
-shape) with fixed, obviously-fictional control verdicts per area. When Aud2 ships, the ``gcp``
-adapter reads its live surface and this fixture stays as the offline stand-in. Aud1 READS these
-verdicts and never keeps a control catalog of its own.
+continuous-controls-monitoring is not built yet, so this freezes the contract
+internal-audit-lifecycle expects from it (a fixture test pins the shape) with fixed,
+obviously-fictional control verdicts per area. When continuous-controls-monitoring ships, the
+``gcp`` adapter reads its live surface and this fixture stays as the offline stand-in.
+internal-audit-lifecycle READS these verdicts and never keeps a control catalog of its own.
 """
 
 from __future__ import annotations
@@ -56,7 +58,9 @@ _SEED: dict[str, tuple[ControlResult, ...]] = {
 
 
 class LocalControlResultsAdapter:
-    """Answer control-result reads from a deterministic fixture (no Aud2, no network)."""
+    """Answer control-result reads from a deterministic fixture (no continuous-controls-monitoring,
+    no network).
+    """
 
     def __init__(self, settings: Settings) -> None:
         self._settings = settings

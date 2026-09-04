@@ -159,7 +159,8 @@ def draft_annual_plan(
     """Rank the audit universe into a risk-based annual plan and route it for sign-off.
 
     The scores, bands and ranks are the deterministic engine's, over the universe enriched with
-    Rsk1 horizon signals read through the ``horizon`` port; the model only narrates the ranked
+    compliance-advisory horizon signals read through the ``horizon`` port; the model only narrates
+    the ranked
     plan, and the narrative is discarded unless every figure in it is one the engine produced.
     Approving a plan is consequential, so the result is ROUTED to human review here (rule R8).
 
@@ -217,8 +218,9 @@ def write_finding(
     """Write up a finding with a deterministic severity and route it for lead-auditor sign-off.
 
     Severity is pure code (impact x likelihood banded by config), never the model's opinion. The
-    finding is ROUTED to human review here (rule R8); Aud1 holds no remediation state, and the
-    finding reaches Aud3 only after this review is approved.
+    finding is ROUTED to human review here (rule R8); internal-audit-lifecycle holds no remediation
+    state, and the
+    finding reaches issue-remediation-capa only after this review is approved.
 
     Args:
       engagement: The engagement the finding belongs to.

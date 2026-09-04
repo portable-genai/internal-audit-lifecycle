@@ -9,11 +9,10 @@ It runs the internal-audit engagement lifecycle from the annual plan to an appro
 four deterministic engines plus two narrated surfaces:
 
 1. **Risk-based annual planning** (`domain/planning.py`): each auditable entity scores as the sum
-   of named additive drivers (inherent risk, the age of the last assurance, the Aud2 control
-   effectiveness trend, Rsk1 horizon pressure), clamped to 0..100 and banded by config-owned
+   of named additive drivers (inherent risk, the age of the last assurance, the `continuous-controls-monitoring` control
+   effectiveness trend, `compliance-advisory` horizon pressure), clamped to 0..100 and banded by config-owned
    floors, then ranked score DESC then id ASC so ties break the same way every time.
-2. **Engagement scoping and sampling** (`domain/scoping.py`): the scope is assembled from Rgc7
-   obligations and Aud2 control results for the audited area, the failing controls are flagged,
+2. **Engagement scoping and sampling** (`domain/scoping.py`): the scope is assembled from `obligations-control-mapping` and `continuous-controls-monitoring` control results for the audited area, the failing controls are flagged,
    and `stratified_sample` selects a proportionally allocated sample from a seed plus an `as_of`
    date, with no global RNG state, so the selection is byte-identical on replay.
 3. **Fieldwork and working papers** (`domain/fieldwork.py`): retrieve grounding passages through
@@ -21,7 +20,7 @@ four deterministic engines plus two narrated surfaces:
    the draft cites was actually retrieved.
 4. **Finding write-up and handover** (`domain/findings.py`): severity is impact x likelihood
    banded by config-owned floors, and an APPROVED finding becomes a normalized `IssueHandover`
-   emitted one-way to Aud3.
+   emitted one-way to `issue-remediation-capa`.
 
 `domain/narration.py` writes the plan narrative and `domain/fieldwork.py` the working paper; both
 restate figures or evidence the engines produced.
@@ -33,8 +32,8 @@ Four properties, all pure code:
 - **The score is built from named drivers, not a black box.** Every `PlanEntry` carries the
   `PlanDriver` list that produced it, each with its points and a sentence explaining the
   arithmetic, so a challenge to a rank is a challenge to a specific driver.
-- **The inputs come from the systems that own them.** The control trend is Aud2's verdict and the
-  horizon count is Rsk1's; Aud1 recomputes neither.
+- **The inputs come from the systems that own them.** The control trend is `continuous-controls-monitoring`'s verdict and the
+  horizon count is `compliance-advisory`'s; `internal-audit-lifecycle` recomputes neither.
 - **The sample is replayable.** The same population, seed and `as_of` produce the same selection,
   because the per-stratum RNG is seeded from a SHA-256 of those three and never from `hash()`,
   which is salted per process.
@@ -65,14 +64,14 @@ and the demo can tell them apart. See [`../model-card.md`](../model-card.md).
 - **It will not serve another tenant's estate.** `authorize_estate_access` raises
   `CrossTenantError`, which the API maps to 403 and not 404, so the refusal names the fact that
   the estate exists rather than leaking through a probe.
-- **It will not hand a finding to Aud3 without an approval.** `POST /v1/finding/handover` rejects
+- **It will not hand a finding to `issue-remediation-capa` without an approval.** `POST /v1/finding/handover` rejects
   an empty `approval_ref`, because a finding reaches the remediation tracker only after a human
-  approved it in Hrz7.
+  approved it in `human-review-console`.
 - **It will not hold remediation state.** There is no CAPA store here, and
   `tests/contract/test_dependency_contracts.py` fails the build if a remediation store port or a
   control catalog store port is ever registered.
 - **It will not auto-execute a consequential result.** A plan and a finding always set
-  `requires_human_review` and are ROUTED to the Hrz7 console in the same call that produced them
+  `requires_human_review` and are ROUTED to the `human-review-console` in the same call that produced them
   (rule R8).
 - **It will not answer without provenance.** Every claim carries a `Citation`.
 
@@ -93,17 +92,17 @@ the reason this system exists.
 
 | Concern | Owner | How this repo touches it |
 |---|---|---|
-| The annual plan, the engagement scope and sample, the working paper, the finding | **this repo (Aud1)** | it IS the system of record for the engagement lifecycle up to an approved finding. |
-| The obligation, policy and control graph | **Rgc7** obligations and control mapping | read over `ObligationsReadPort` (`AUDIT_OBLIGATIONS_URL`). This repo scopes an engagement; it does not keep a register. |
-| Control testing and effectiveness verdicts | **Aud2** control testing | read over `ControlResultsReadPort` (`AUDIT_CONTROL_RESULTS_URL`). Aud1 keeps NO control catalog, and a contract test fails the build if one appears. |
-| The regulatory corpus and the change horizon | **Rsk1** compliance assistant | read over `HorizonReadPort` (`AUDIT_HORIZON_URL`); the count becomes the planner's `horizon_pressure` driver. |
-| Issue remediation and CAPA to closure | **Aud3** issue remediation and CAPA | one-way emit over `FindingFeedPort` (`AUDIT_AUD3_FEED_URL`), only with an Hrz7 approval reference. Everything after handover is Aud3's. |
-| Grounded retrieval over a governed corpus | **Hrz2** enterprise knowledge base | `KnowledgeBaseReadPort` is the seam; today it points at whatever store `AUDIT_KNOWLEDGE_BASE_URL` names. Binding it to Hrz2 is the rule R3 decision. |
-| Agent discovery and entitlements | **Hrz3** agent registry | this agent publishes a card; the registry owns discovery. |
-| Model and agent promotion | **Hrz4** AI quality and model risk | `eval/run_eval.py --mode gate` asks Hrz4; the offline smoke mode never promotes. |
-| Traces and the immutable audit sink | **Hrz5** agent observability | `AuditSinkPort` and `ObservabilityTracerPort`. |
-| Human review and maker-checker | **Hrz7** human review console | `ReviewRouterPort` over the shared `review-kit`. This repo produces escalations; it does not render a queue. |
-| Prompt-injection defence and output filtering | **Hrz1** agent guardrail gateway | **not wired today.** It becomes mandatory the moment untrusted free text reaches the drafter (rule R1), and the retrieved passages already are that text. |
+| The annual plan, the engagement scope and sample, the working paper, the finding | **this repo (`internal-audit-lifecycle`)** | it IS the system of record for the engagement lifecycle up to an approved finding. |
+| The obligation, policy and control graph | `obligations-control-mapping` and control mapping | read over `ObligationsReadPort` (`AUDIT_OBLIGATIONS_URL`). This repo scopes an engagement; it does not keep a register. |
+| Control testing and effectiveness verdicts | `continuous-controls-monitoring` control testing | read over `ControlResultsReadPort` (`AUDIT_CONTROL_RESULTS_URL`). `internal-audit-lifecycle` keeps NO control catalog, and a contract test fails the build if one appears. |
+| The regulatory corpus and the change horizon | `compliance-advisory` | read over `HorizonReadPort` (`AUDIT_HORIZON_URL`); the count becomes the planner's `horizon_pressure` driver. |
+| Issue remediation and CAPA to closure | `issue-remediation-capa` issue remediation and CAPA | one-way emit over `FindingFeedPort` (`AUDIT_AUD3_FEED_URL`), only with an `human-review-console` approval reference. Everything after handover is `issue-remediation-capa`'s. |
+| Grounded retrieval over a governed corpus | `enterprise-knowledge-base` | `KnowledgeBaseReadPort` is the seam; today it points at whatever store `AUDIT_KNOWLEDGE_BASE_URL` names. Binding it to `enterprise-knowledge-base` is the rule R3 decision. |
+| Agent discovery and entitlements | `agent-registry` | this agent publishes a card; the registry owns discovery. |
+| Model and agent promotion | `model-quality-gate` AI quality and model risk | `eval/run_eval.py --mode gate` asks `model-quality-gate`; the offline smoke mode never promotes. |
+| Traces and the immutable audit sink | `agent-observability` agent observability | `AuditSinkPort` and `ObservabilityTracerPort`. |
+| Human review and maker-checker | `human-review-console` human review console | `ReviewRouterPort` over the shared `review-kit`. This repo produces escalations; it does not render a queue. |
+| Prompt-injection defence and output filtering | `agent-guardrail-gateway` agent guardrail gateway | **not wired today.** It becomes mandatory the moment untrusted free text reaches the drafter (rule R1), and the retrieved passages already are that text. |
 
 ### Can I demo it without a cloud project?
 
@@ -118,5 +117,5 @@ meeting; `make demo-static` renders the same audit-first panels to static HTML f
 The honest list is [`../practices-audit.md`](../practices-audit.md) and the `TODO (repo owner)`
 rows in [`../../COMPLIANCE.md`](../../COMPLIANCE.md). The three that matter most for a production
 decision: the managed read adapters' `_parse` response mappings, which are placeholders that make
-`managed_readiness.py` refuse to start a `gcp` process at all; the Hrz1 guardrail binding; and
-registering this repo's metric bundle with Hrz4 so `--mode gate` has an authority to ask.
+`managed_readiness.py` refuse to start a `gcp` process at all; the `agent-guardrail-gateway` binding; and
+registering this repo's metric bundle with `model-quality-gate` so `--mode gate` has an authority to ask.

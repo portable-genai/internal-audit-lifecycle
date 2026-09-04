@@ -436,7 +436,7 @@ class Settings:
     #: that verifies perfectly. Empty means no anchor, which is right for the ephemeral
     #: ``:memory:`` store and wrong for anything durable.
     audit_anchor_path: str = ""
-    #: Base URL of the Hrz7 Human-Review console the R8 producer path submits to.
+    #: Base URL of the human-review-console Human-Review console the R8 producer path submits to.
     review_url: str = ""
     #: The audience the managed IAP identity adapter verifies the signed assertion AGAINST: the
     #: IAP-protected resource, ``/projects/<NUM>/global/backendServices/<ID>`` behind an HTTPS
@@ -453,16 +453,20 @@ class Settings:
     #: a trace resource path. Empty is valid: on Cloud Run the exporter resolves it
     #: from the metadata server.
     project_id: str = ""
-    #: Read/write endpoints for the systems Aud1 consumes. Each is three-state through the
+    #: Read/write endpoints for the systems internal-audit-lifecycle consumes. Each is three-state
+    #: through the
     #: settings file's ``${VAR:-}`` expansion: UNSET and SET-AND-EMPTY both arrive as ``""``, and
     #: the managed (gcp) adapter refuses every call with that empty value rather than reaching a
-    #: default host. They are per-deployment (the real Rgc7 / Aud2 / Rsk1 / Aud3 URLs), so there
+    #: default host. They are per-deployment (the real obligations-control-mapping /
+    #: continuous-controls-monitoring / compliance-advisory / issue-remediation-capa URLs), so there
     #: is no shipped default and an offline run leaves them empty on purpose.
-    obligations_url: str = ""  # Rgc7 obligation-register read surface
-    control_results_url: str = ""  # Aud2 control-effectiveness read surface
-    horizon_url: str = ""  # Rsk1 horizon change-feed read surface
+    obligations_url: str = ""  # obligations-control-mapping obligation-register read surface
+    control_results_url: str = (
+        ""  # continuous-controls-monitoring control-effectiveness read surface
+    )
+    horizon_url: str = ""  # compliance-advisory horizon change-feed read surface
     knowledge_base_url: str = ""  # governed workpaper / prior-audit retrieval surface
-    aud3_feed_url: str = ""  # Aud3 issue-intake feed (the finding handover)
+    aud3_feed_url: str = ""  # issue-remediation-capa issue-intake feed (the finding handover)
     #: Was :attr:`profile` chosen DELIBERATELY, or merely inherited because nobody set the
     #: variable? Only :meth:`load` can set this False; direct construction names the profile in
     #: code and is deliberate by definition. The seeded-persona identity adapter refuses to

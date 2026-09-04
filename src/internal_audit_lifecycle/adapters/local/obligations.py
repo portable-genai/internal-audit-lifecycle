@@ -1,10 +1,12 @@
-"""Local ObligationsReadPort: a deterministic fixture of Rgc7's obligation register.
+"""Local ObligationsReadPort: a deterministic fixture of obligations-control-mapping's obligation
+register.
 
-Rgc7 is not reachable in the offline gate, so this stands in for its read surface with a fixed,
-obviously-fictional obligation set per audited area. It freezes the contract Aud1 depends on (a
-fixture test pins the shape), so the offline pipeline exercises the real scoping path with no
-network and no cloud SDK. A silent empty return for a KNOWN area would let a producer ship the
-scoping seam unwired, so every seeded area returns real, inspectable obligations.
+obligations-control-mapping is not reachable in the offline gate, so this stands in for its read
+surface with a fixed, obviously-fictional obligation set per audited area. It freezes the contract
+internal-audit-lifecycle depends on (a fixture test pins the shape), so the offline pipeline
+exercises the real scoping path with no network and no cloud SDK. A silent empty return for a KNOWN
+area would let a producer ship the scoping seam unwired, so every seeded area returns real,
+inspectable obligations.
 """
 
 from __future__ import annotations
@@ -55,7 +57,9 @@ _SEED: dict[str, tuple[ObligationRef, ...]] = {
 
 
 class LocalObligationsAdapter:
-    """Answer obligation reads from a deterministic fixture register (no Rgc7, no network)."""
+    """Answer obligation reads from a deterministic fixture register (no
+    obligations-control-mapping, no network).
+    """
 
     def __init__(self, settings: Settings) -> None:
         self._settings = settings

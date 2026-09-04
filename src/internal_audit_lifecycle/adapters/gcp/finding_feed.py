@@ -1,4 +1,4 @@
-"""GCP FindingFeedPort adapter: reach Aud3 over HTTPS, refusing when unconfigured.
+"""GCP FindingFeedPort adapter: reach issue-remediation-capa over HTTPS, refusing when unconfigured.
 
 The endpoint is per-deployment config (AUDIT_AUD3_FEED_URL), read three-state: UNSET and
 SET-AND-EMPTY both arrive as ``""``, and this adapter REFUSES every call rather than reaching a
@@ -14,7 +14,9 @@ from ...domain.findings import IssueHandover
 
 
 class CloudFindingFeedAdapter:
-    """Reach Aud3 over its authenticated HTTPS surface, or refuse when unconfigured."""
+    """Reach issue-remediation-capa over its authenticated HTTPS surface, or refuse when
+    unconfigured.
+    """
 
     def __init__(self, settings: Settings) -> None:
         self._settings = settings
@@ -23,14 +25,15 @@ class CloudFindingFeedAdapter:
         url = self._settings.aud3_feed_url
         if not url:
             raise RuntimeError(
-                "Aud3 endpoint is unconfigured: set AUDIT_AUD3_FEED_URL to the deployment "
+                "issue-remediation-capa endpoint is unconfigured: set AUDIT_AUD3_FEED_URL to the "
+                "deployment "
                 "URL. There is no default host to fall back to."
             )
         return self._reach(url, handover)
 
     def _reach(
         self, url: str, handover: IssueHandover
-    ) -> str:  # pragma: no cover - needs live Aud3
+    ) -> str:  # pragma: no cover - needs live issue-remediation-capa
         # Lazy import: absent offline and in CI, so a managed run without the SDK raises here.
         from google.auth import default as google_auth_default
         from google.auth.transport.requests import AuthorizedSession
@@ -42,5 +45,7 @@ class CloudFindingFeedAdapter:
         return self._parse(response.json())
 
     @staticmethod
-    def _parse(payload: object) -> str:  # pragma: no cover - needs live Aud3
-        raise NotImplementedError("wire Aud3 payload parsing when its live surface is available")
+    def _parse(payload: object) -> str:  # pragma: no cover - needs live issue-remediation-capa
+        raise NotImplementedError(
+            "wire issue-remediation-capa payload parsing when its live surface is available"
+        )

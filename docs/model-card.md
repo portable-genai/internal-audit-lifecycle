@@ -1,4 +1,4 @@
-# Model card: Internal Audit Lifecycle Copilot (Aud1)
+# Model card: Internal Audit Lifecycle Copilot (`internal-audit-lifecycle`)
 
 This is a STARTER model card. It records the model boundary as built and the controls that must be
 completed before a managed deployment. The deterministic engines are the system of record; the
@@ -13,7 +13,7 @@ model is a bounded, replaceable component that writes two pieces of prose and no
 - **Does NOT**: produce any plan score, band or rank, any sample selection, any finding severity,
   or any escalation decision. Scores and bands come from `AnnualPlanner` in `domain/planning.py`,
   the sample from `stratified_sample` in `domain/scoping.py`, the severity from `FindingService`
-  in `domain/findings.py`, and the Aud3 handover gate from an Hrz7 approval reference the surface
+  in `domain/findings.py`, and the `issue-remediation-capa` handover gate from an `human-review-console` approval reference the surface
   checks. With the local stub generation adapter bound, every consequential field is identical, so
   a model change cannot move a figure.
 
@@ -43,8 +43,8 @@ model is a bounded, replaceable component that writes two pieces of prose and no
 - Personal data is masked before the audit write, before an outbound review payload and before a
   tool result can enter a model's context (`domain/pii.py`, `adapters/_review_payload.py`,
   `agent/tools.py`).
-- Every consequential result sets `requires_human_review` and is routed to Hrz7 (rule R8) in the
-  same call; nothing auto-executes, and no model output can satisfy the Aud3 handover's approval
+- Every consequential result sets `requires_human_review` and is routed to `human-review-console` (rule R8) in the
+  same call; nothing auto-executes, and no model output can satisfy the `issue-remediation-capa` handover's approval
   reference.
 
 ## Adapters and profiles
@@ -69,9 +69,9 @@ model is a bounded, replaceable component that writes two pieces of prose and no
   yields the deterministic text, but nothing yet lets an operator disable the model deliberately.
 - **Evaluation of the live model**: the offline eval scores the deterministic pipeline with the
   stub adapter against the golden set and the two oracles. Add a managed-profile run, registered
-  with the Hrz4 promotion gate (P-08, rule R5), that scores `plan_narration_groundedness` and
+  with the `model-quality-gate` promotion gate (P-08, rule R5), that scores `plan_narration_groundedness` and
   `workpaper_grounding` with the real model bound.
-- **Prompt-injection screening** (rule R1): the Hrz1 guardrail gateway is not bound, and this repo
+- **Prompt-injection screening** (rule R1): the `agent-guardrail-gateway` is not bound, and this repo
   needs it more than a purely numeric one does. The plan narrative's facts block carries engine
   integers, but the working-paper path puts RETRIEVED PASSAGE TEXT into the prompt, and that text
   comes from a corpus this service does not own. Screen it before it reaches `build_request`, and

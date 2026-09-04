@@ -74,7 +74,7 @@ def test_finding_handover_requires_approval_and_emits(api_client: TestClient) ->
     )
     assert ok.status_code == 200
     body = ok.json()
-    assert body["approval_ref"] == "rev-42" and body["source_system"] == "Aud1"
+    assert body["approval_ref"] == "rev-42" and body["source_system"] == "internal-audit-lifecycle"
     assert body["feed_ref"]
 
 

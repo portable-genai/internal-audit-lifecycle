@@ -1,4 +1,4 @@
-# Internal Audit Lifecycle Copilot (Aud1) runtime configuration.
+# Internal Audit Lifecycle Copilot (internal-audit-lifecycle) runtime configuration.
 #
 # Loaded by `src/internal_audit_lifecycle/config.py`. Point at a different file with
 # AUDIT_SETTINGS; a path that is named but missing is a boot error, not
@@ -45,15 +45,15 @@ iap_audience: ${AUDIT_IAP_AUDIENCE:-}
 # deliberately distinct from this service's own inbound AUDIT_S2S_TOKEN.
 review_url: ${HUMAN_REVIEW_URL:-}
 
-# Per-deployment read/write endpoints for the systems Aud1 consumes. Each is three-state: UNSET
+# Per-deployment read/write endpoints for the systems internal-audit-lifecycle consumes. Each is three-state: UNSET
 # and SET-AND-EMPTY both resolve to empty, and the managed (gcp) adapter REFUSES every call with
 # an empty endpoint rather than reaching a default host. Empty is correct offline (the local
 # fixture adapters answer) and wrong for a managed deployment, which sets each to the real URL.
-obligations_url: ${AUDIT_OBLIGATIONS_URL:-}          # Rgc7 obligation-register read surface
-control_results_url: ${AUDIT_CONTROL_RESULTS_URL:-}  # Aud2 control-effectiveness read surface
-horizon_url: ${AUDIT_HORIZON_URL:-}                  # Rsk1 horizon change-feed read surface
+obligations_url: ${AUDIT_OBLIGATIONS_URL:-}          # obligations-control-mapping obligation-register read surface
+control_results_url: ${AUDIT_CONTROL_RESULTS_URL:-}  # continuous-controls-monitoring control-effectiveness read surface
+horizon_url: ${AUDIT_HORIZON_URL:-}                  # compliance-advisory horizon change-feed read surface
 knowledge_base_url: ${AUDIT_KNOWLEDGE_BASE_URL:-}    # governed workpaper / prior-audit retrieval
-aud3_feed_url: ${AUDIT_AUD3_FEED_URL:-}              # Aud3 issue-intake feed (finding handover)
+aud3_feed_url: ${AUDIT_AUD3_FEED_URL:-}              # issue-remediation-capa issue-intake feed (finding handover)
 
 # The per-port adapter map: the ONLY place a binding lives, so switching the whole stack is a
 # configuration change rather than a code edit. Every port must bind every profile; the loader
@@ -76,7 +76,7 @@ adapters:
     onprem: internal_audit_lifecycle.adapters.onprem.review_router:OnPremReviewRouter
 
   # Tracing. Which BACKEND a deployed profile exports to is not a binding: the gcp
-  # adapter reads OTEL_EXPORTER_OTLP_ENDPOINT and sends OTLP to the Hrz5 collector when it
+  # adapter reads OTEL_EXPORTER_OTLP_ENDPOINT and sends OTLP to the agent-observability collector when it
   # is set, straight to Cloud Trace when it is not. Tracing is not essential to
   # correctness, so onprem is ABSENT rather than fatal, unlike the other placeholders.
   tracer:
@@ -84,7 +84,7 @@ adapters:
     gcp: internal_audit_lifecycle.adapters.gcp.tracer:CloudTracerAdapter
     onprem: internal_audit_lifecycle.adapters.onprem.tracer:OnPremTracerAdapter
 
-  # The promotion authority (Hrz4). The local adapter scores offline but REFUSES to
+  # The promotion authority (model-quality-gate). The local adapter scores offline but REFUSES to
   # promote: a promotion certified by a laptop with no quality service is certified by
   # nothing.
   evaluation:
