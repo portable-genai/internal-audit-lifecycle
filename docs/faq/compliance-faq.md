@@ -31,8 +31,10 @@ construction: `AnnualPlan.requires_human_review` and `Finding.requires_human_rev
 True, and the flag plus the call to `ReviewRouterPort.route` are one act, not a flag plus an
 intention. The API, the CLI and the agent tools all route in the same call that produced the
 result, and `tests/unit/test_review_routing.py` asserts the routing rather than the flag. Under
-the managed profile the router REFUSES when no console is configured, so a deployment cannot
-swallow an escalation silently.
+the managed profile the service REFUSES TO BOOT with routing on and no console configured, and
+every response says what happened to its hand-off (`review_routing`: routed, failed, off or
+not_required), so a deployment cannot swallow an escalation silently. Switching routing off
+(`AUDIT_REVIEW_ROUTING=off`) is a stated posture the service logs at startup.
 
 The handover to `issue-remediation-capa` is the second gate: `POST /v1/finding/handover` rejects an empty
 `approval_ref`, so a finding reaches the remediation tracker only after the `human-review-console` review that

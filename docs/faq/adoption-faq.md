@@ -40,8 +40,8 @@ Four things, and two of them are code here:
 3. **A durable store for the estate.** Offline the universe lives in process. A deployment needs a
    store bound behind a port of its own, carrying each estate's owning tenant on its rows.
 4. **The review console.** An `human-review-console` deployment reachable at `HUMAN_REVIEW_URL`. The managed
-   router REFUSES to swallow an escalation when this is empty, so a fork cannot ship rule R8
-   unwired and green.
+   profile REFUSES TO BOOT with routing on and this empty, so a fork cannot ship rule R8 unwired
+   and green; `AUDIT_REVIEW_ROUTING=off` is the stated way to run without a console.
 
 ### How do I add a new outbound dependency (a new port)?
 
