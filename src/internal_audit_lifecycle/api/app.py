@@ -67,6 +67,7 @@ from hex_service_kit.web import (
     make_require_service_caller,
 )
 
+from ..adapters.controls import RecordingReviewRouter
 from ..config import (
     LOCAL_PROFILE,
     Container,
@@ -312,12 +313,13 @@ def triage(
         TriageInput(subject=request.subject, text=request.text),
         actor=principal.actor,
     )
-    review_ref = ""
-    if result.requires_human_review:
-        review_ref = container.review_router.route(
-            result, maker=principal.actor, tenant=principal.tenant
-        )
-    return TriageResponse.from_domain(result, review_ref=review_ref)
+    # The hand-off never fails an already-scored, already-audited triage; the response says
+    # what happened to it instead (the fleet's runtime-control contract).
+    routing = RecordingReviewRouter(container.review_router)
+    review_ref = routing.route(result, maker=principal.actor, tenant=principal.tenant)
+    return TriageResponse.from_domain(
+        result, review_ref=review_ref, review_routing=routing.outcome.value
+    )
 
 
 def _envelope(
@@ -364,7 +366,8 @@ def plan(
     )
     note = PlanNarrationService(container.generation).narrate(result)
     _record(container, action="annual_plan", result=result, actor=principal.actor)
-    review_ref = container.review_router.route(
+    routing = RecordingReviewRouter(container.review_router)
+    review_ref = routing.route(
         _envelope(
             subject=result.subject,
             severity=result.severity,
@@ -380,6 +383,7 @@ def plan(
         narrative=note.text,
         narrative_model_authored=note.model_authored,
         review_ref=review_ref,
+        review_routing=routing.outcome.value,
     )
 
 
@@ -459,7 +463,8 @@ def finding(
         )
     )
     _record(container, action="finding", result=result, actor=principal.actor)
-    review_ref = container.review_router.route(
+    routing = RecordingReviewRouter(container.review_router)
+    review_ref = routing.route(
         _envelope(
             subject=result.subject,
             severity=result.severity,
@@ -470,7 +475,9 @@ def finding(
         maker=principal.actor,
         tenant=principal.tenant,
     )
-    return FindingResponse.from_domain(result, review_ref=review_ref)
+    return FindingResponse.from_domain(
+        result, review_ref=review_ref, review_routing=routing.outcome.value
+    )
 
 
 @app.post("/v1/finding/handover", response_model=HandoverResponse, tags=["artifacts"])

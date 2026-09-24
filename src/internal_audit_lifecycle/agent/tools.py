@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Any
 from hex_service_kit.serialization import to_jsonable
 from pii_kit import redact
 
+from ..adapters.controls import RecordingReviewRouter
 from ..config import Container, Settings, build_container
 from ..domain.findings import FindingInput, FindingService
 from ..domain.models import TriageInput, TriageResult
@@ -80,22 +81,22 @@ def triage_case(
 
     Returns:
       A JSON-safe result dict with every string masked for personal data (P-04: a tool result
-      goes into a model's context), plus ``review_ref``: where the escalation WENT. It is empty
-      only when the result did not escalate, so a caller can tell a routed escalation from a
-      flag nobody read.
+      goes into a model's context), plus ``review_ref``: where the escalation WENT, and
+      ``review_routing``: routed, failed, off or not_required. The reference is empty unless the
+      hand-off was routed, so a caller can tell a routed escalation from a flag nobody read.
     """
     container = _container(settings)
     case = TriageInput(subject=subject, text=text)
     result = TriageService(container.audit, tracer=container.tracer).triage(case, actor=actor)
-    review_ref = ""
-    if result.requires_human_review:
-        review_ref = container.review_router.route(result, maker=actor, tenant=tenant)
+    routing = RecordingReviewRouter(container.review_router)
+    review_ref = routing.route(result, maker=actor, tenant=tenant)
     payload = _redacted(to_jsonable(result))
     if not isinstance(payload, dict):  # pragma: no cover - dataclasses serialise to objects
         raise TypeError("a triage result must serialise to a JSON object")
     # Attached after the redaction pass: it is a routing reference, not narrative text, and
     # masking an identifier would break the caller's ability to look the review up.
     payload["review_ref"] = review_ref
+    payload["review_routing"] = routing.outcome.value
     return payload
 
 
@@ -138,8 +139,12 @@ def _route_envelope(
     citations: Any,
     maker: str,
     tenant: str,
-) -> str:
-    """Project a consequential audit result onto the R8 envelope and ROUTE it (rule R8)."""
+) -> tuple[str, str]:
+    """Project a consequential audit result onto the R8 envelope and ROUTE it (rule R8).
+
+    Returns the review reference and what happened to the hand-off (``review_routing``), so a
+    tool result can say whether the item is actually queued for review.
+    """
     envelope = TriageResult(
         subject=subject,
         severity=severity,
@@ -148,7 +153,9 @@ def _route_envelope(
         requires_human_review=True,
         citations=tuple(citations),
     )
-    return container.review_router.route(envelope, maker=maker, tenant=tenant)
+    routing = RecordingReviewRouter(container.review_router)
+    reference = routing.route(envelope, maker=maker, tenant=tenant)
+    return reference, routing.outcome.value
 
 
 def draft_annual_plan(
@@ -169,8 +176,8 @@ def draft_annual_plan(
       tenant: Tenant partition asserted on the outbound review.
 
     Returns:
-      A JSON-safe dict with the ranked entries, the grounded narrative and ``review_ref``: where
-      the plan escalation WENT.
+      A JSON-safe dict with the ranked entries, the grounded narrative, ``review_ref``: where
+      the plan escalation WENT, and ``review_routing``: what happened to the hand-off.
     """
     from datetime import date
 
@@ -178,7 +185,7 @@ def draft_annual_plan(
     universe = enrich_universe(seed_universe(), tuple(container.horizon.signals()))
     plan = AnnualPlanner().rank(universe, as_of=date.today(), scope="annual audit plan")
     note = PlanNarrationService(container.generation).narrate(plan)
-    review_ref = _route_envelope(
+    review_ref, review_routing = _route_envelope(
         container,
         subject=plan.subject,
         severity=plan.severity,
@@ -202,6 +209,7 @@ def draft_annual_plan(
     if not isinstance(payload, dict):  # pragma: no cover - dict in, dict out
         raise TypeError("a plan payload must be a JSON object")
     payload["review_ref"] = review_ref
+    payload["review_routing"] = review_routing
     return payload
 
 
@@ -232,7 +240,8 @@ def write_finding(
       tenant: Tenant partition asserted on the outbound review.
 
     Returns:
-      A JSON-safe dict with the finding, its computed severity and ``review_ref``.
+      A JSON-safe dict with the finding, its computed severity, ``review_ref`` and
+      ``review_routing``.
     """
     container = _container(settings)
     finding = FindingService().assess(
@@ -245,7 +254,7 @@ def write_finding(
             evidence=(),
         )
     )
-    review_ref = _route_envelope(
+    review_ref, review_routing = _route_envelope(
         container,
         subject=finding.subject,
         severity=finding.severity,
@@ -268,6 +277,7 @@ def write_finding(
     if not isinstance(payload, dict):  # pragma: no cover - dict in, dict out
         raise TypeError("a finding payload must be a JSON object")
     payload["review_ref"] = review_ref
+    payload["review_routing"] = review_routing
     return payload
 
 

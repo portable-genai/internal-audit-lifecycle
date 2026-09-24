@@ -8,6 +8,7 @@ from datetime import date
 
 from hex_service_kit.logging import configure_logging
 
+from ..adapters.controls import RecordingReviewRouter
 from ..config import build_container
 from ..domain.findings import FindingInput, FindingService
 from ..domain.models import TriageInput, TriageResult
@@ -57,8 +58,9 @@ def main(argv: list[str] | None = None) -> int:
         if result.requires_human_review:
             # Rule R8 on the CLI path too: the same escalation, the same router. A surface that
             # only printed the flag would be a second place for an escalation to stop.
-            ref = container.review_router.route(result, maker=args.actor, tenant=args.tenant)
-            print(f"  routed to human review: {ref}")
+            routing = RecordingReviewRouter(container.review_router)
+            ref = routing.route(result, maker=args.actor, tenant=args.tenant)
+            print(f"  human review hand-off : {routing.outcome.value} {ref}".rstrip())
         return 0
 
     if args.command == "plan":
@@ -67,8 +69,9 @@ def main(argv: list[str] | None = None) -> int:
         for entry in plan.entries:
             print(f"  #{entry.rank} {entry.entity_id}: {entry.score} ({entry.band.value})")
         # Rule R8: approving an annual plan is consequential, so route it, never merely print it.
-        ref = container.review_router.route(_envelope(plan), maker=args.actor, tenant=args.tenant)
-        print(f"  routed to human review: {ref}")
+        routing = RecordingReviewRouter(container.review_router)
+        ref = routing.route(_envelope(plan), maker=args.actor, tenant=args.tenant)
+        print(f"  human review hand-off : {routing.outcome.value} {ref}".rstrip())
         return 0
 
     if args.command == "finding":
@@ -83,10 +86,9 @@ def main(argv: list[str] | None = None) -> int:
             )
         )
         print(f"{finding.id}: {finding.severity.value} (score {finding.score})")
-        ref = container.review_router.route(
-            _envelope(finding), maker=args.actor, tenant=args.tenant
-        )
-        print(f"  routed to human review: {ref}")
+        routing = RecordingReviewRouter(container.review_router)
+        ref = routing.route(_envelope(finding), maker=args.actor, tenant=args.tenant)
+        print(f"  human review hand-off : {routing.outcome.value} {ref}".rstrip())
         return 0
 
     return 2  # pragma: no cover - argparse requires a subcommand
