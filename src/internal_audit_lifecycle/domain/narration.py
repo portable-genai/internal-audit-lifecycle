@@ -83,8 +83,10 @@ def build_request(plan: AnnualPlan) -> GenerationRequest:
         f"Facts (use ONLY these numbers):\n{block}\n"
         'Return JSON of the form {"narrative": "<one sentence>"}.'
     )
+    # Sampling stays FREE (no temperature sent): this narrates the engine's ranking. Every number
+    # is checked against the facts whatever the model samples, and the engine owns the ranks.
     return GenerationRequest(
-        system=_SYSTEM, prompt=prompt, facts=facts, response_keys=("narrative",)
+        system=_SYSTEM, prompt=prompt, facts=facts, response_keys=("narrative",), temperature=None
     )
 
 

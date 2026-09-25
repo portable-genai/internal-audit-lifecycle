@@ -17,6 +17,10 @@ Developer API or Vertex (``GOOGLE_GENAI_USE_VERTEXAI``) without a code change he
 
 from __future__ import annotations
 
+from typing import Any
+
+from hex_service_kit import provenance
+
 from ...config import Settings
 from ...ports.generation import GenerationRequest, GenerationResponse
 
@@ -30,23 +34,29 @@ class CloudGenerationAdapter:
     def __init__(self, settings: Settings) -> None:
         self._settings = settings
 
-    def generate(
-        self, request: GenerationRequest
-    ) -> GenerationResponse:  # pragma: no cover - needs live GCP
+    def generate(self, request: GenerationRequest) -> GenerationResponse:
         # Lazy import: absent in the offline profiles and in CI, so this raises there rather than
         # answering, which is exactly the managed-family refusal the parity suite asserts.
         from google import genai
         from google.genai import types
 
+        config: dict[str, Any] = {
+            "system_instruction": request.system,
+            "response_mime_type": "application/json",
+            "max_output_tokens": request.max_output_tokens,
+        }
+        # Sampling per call: a request that pins nothing sends no temperature at all, so the
+        # model samples at its own default (some models reject the parameter outright).
+        if request.temperature is not None:
+            config["temperature"] = request.temperature
+
         client = genai.Client()
         completion = client.models.generate_content(
             model=self._MODEL,
             contents=request.prompt,
-            config=types.GenerateContentConfig(
-                system_instruction=request.system,
-                response_mime_type="application/json",
-                max_output_tokens=request.max_output_tokens,
-                temperature=0.2,
-            ),
+            config=types.GenerateContentConfig(**config),
         )
+        # The console's model pill names what answered: this call, this model. No search tool
+        # is attached here, so nothing is noted as a search.
+        provenance.note_model(self._MODEL)
         return GenerationResponse(text=completion.text or "", model=self._MODEL)

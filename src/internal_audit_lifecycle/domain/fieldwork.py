@@ -101,8 +101,10 @@ def build_request(
         f"Retrieved evidence (cite ONLY these source ids, in square brackets):\n{block}\n"
         'Return JSON of the form {"workpaper": "<two sentences with [source-id] citations>"}.'
     )
+    # Sampling stays FREE (no temperature sent): this drafts prose. The citation check below
+    # holds whatever the model samples, and a draft that fails it is discarded, not re-rolled.
     return GenerationRequest(
-        system=_SYSTEM, prompt=prompt, facts=facts, response_keys=("workpaper",)
+        system=_SYSTEM, prompt=prompt, facts=facts, response_keys=("workpaper",), temperature=None
     )
 
 

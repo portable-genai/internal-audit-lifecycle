@@ -24,6 +24,11 @@ class GenerationRequest:
     ``facts`` is not decoration: it is the authoritative set of figures the narration service
     grounds the model's output against. A number in the model's note that is not derivable from
     these facts is treated as a hallucination and the note is discarded.
+
+    ``temperature`` is sampled per call. ``None`` (the default) means the adapter OMITS it and the
+    model samples at its own default: some models (Opus 5, Fable 5) reject the parameter, so free
+    means absent, never ``1.0``. Pin ``0.0`` only where the output is extracted, classified,
+    scored or compared against a deterministic check; drafting and narration stay free.
     """
 
     system: str
@@ -31,6 +36,7 @@ class GenerationRequest:
     facts: tuple[tuple[str, str], ...] = ()
     response_keys: tuple[str, ...] = ("note",)
     max_output_tokens: int = 512
+    temperature: float | None = None
 
 
 @dataclass(frozen=True, slots=True)
