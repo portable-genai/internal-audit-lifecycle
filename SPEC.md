@@ -27,6 +27,10 @@ Locked decisions, pinned stack, contracts. This document is the deepest authorit
   `review_routing` (`routed`, `failed`, `off` or `not_required`), so a caller can tell a routed
   escalation from one that stopped here. Under the managed profile, routing on with no console
   configured refuses at boot; `AUDIT_REVIEW_ROUTING=off` is the stated way to run without it.
+- **Guardrail (R1)**: both model calls screen the prompt INPUT before the call and the raw answer
+  OUTPUT after it (`domain/screening.py`). A refusal, or a guardrail that cannot decide, is audited
+  `blocked` and the caller gets the deterministic fallback, never a partial or unscreened answer.
+  `AUDIT_GUARDRAIL=off` is the stated way to run without it.
 - **Profile**: resolved ONCE, at import, into a `ProfileChoice` and never a bare string. Three
   states of `AUDIT_PROFILE`: UNSET is NO CHOICE (the SDK-free adapters
   still bind, but the seeded personas are refused, no service-to-service scheme is selected, every

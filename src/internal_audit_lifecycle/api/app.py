@@ -374,7 +374,9 @@ def plan(
     result = AnnualPlanner().rank(
         universe, as_of=date.fromisoformat(request.as_of), scope=request.scope
     )
-    note = PlanNarrationService(container.generation).narrate(result)
+    note = PlanNarrationService(container.generation, container.guardrail, container.audit).narrate(
+        result, actor=principal.actor
+    )
     _record(container, action="annual_plan", result=result, actor=principal.actor)
     routing = RecordingReviewRouter(container.review_router)
     review_ref = routing.route(
@@ -442,7 +444,9 @@ def workpaper(
     container = _container()
     query = RetrievalQuery(area=request.area, text=request.text)
     passages = tuple(container.knowledge_base.search(query))
-    wp = WorkpaperService(container.generation).draft(query, passages)
+    wp = WorkpaperService(container.generation, container.guardrail, container.audit).draft(
+        query, passages, actor=principal.actor
+    )
     return WorkpaperResponse.from_domain(wp)
 
 

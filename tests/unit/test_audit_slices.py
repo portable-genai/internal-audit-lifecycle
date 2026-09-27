@@ -9,6 +9,9 @@ from __future__ import annotations
 
 from datetime import date
 
+from internal_audit_lifecycle.adapters.local.audit import LocalAuditAdapter
+from internal_audit_lifecycle.adapters.local.guardrail import LocalHeuristicGuardrailAdapter
+from internal_audit_lifecycle.config import Settings
 from internal_audit_lifecycle.domain.fieldwork import (
     RetrievalQuery,
     RetrievedPassage,
@@ -143,22 +146,35 @@ class _HallucinatingGen:
         return GenerationResponse(text=json.dumps({"workpaper": "cites [not-a-source]"}))
 
 
+#: The real local guardrail and audit adapters, not bespoke fakes: benign fieldwork text never
+#: matches the heuristic's injection/jailbreak patterns, so rule R1's screen runs on every call
+#: below with no behaviour change to assert around.
+_GUARDRAIL = LocalHeuristicGuardrailAdapter(Settings())
+_AUDIT = LocalAuditAdapter(Settings(audit_path=":memory:"))
+
+
 def test_fieldwork_declines_to_draft_on_empty_retrieval() -> None:
-    wp = WorkpaperService(_GroundedGen()).draft(RetrievalQuery(area="x", text="q"), ())
+    wp = WorkpaperService(_GroundedGen(), _GUARDRAIL, _AUDIT).draft(
+        RetrievalQuery(area="x", text="q"), (), actor="a"
+    )
     assert wp.drafted is False
     assert wp.text == "" and not wp.citations
 
 
 def test_fieldwork_keeps_a_grounded_model_draft() -> None:
     passages = (RetrievedPassage(source_id="wp-1", title="t", snippet="s"),)
-    wp = WorkpaperService(_GroundedGen()).draft(RetrievalQuery(area="x", text="q"), passages)
+    wp = WorkpaperService(_GroundedGen(), _GUARDRAIL, _AUDIT).draft(
+        RetrievalQuery(area="x", text="q"), passages, actor="a"
+    )
     assert wp.drafted and wp.model_authored and wp.grounded
     assert draft_is_grounded(wp.text, passages)
 
 
 def test_fieldwork_discards_an_ungrounded_model_draft() -> None:
     passages = (RetrievedPassage(source_id="wp-1", title="t", snippet="s"),)
-    wp = WorkpaperService(_HallucinatingGen()).draft(RetrievalQuery(area="x", text="q"), passages)
+    wp = WorkpaperService(_HallucinatingGen(), _GUARDRAIL, _AUDIT).draft(
+        RetrievalQuery(area="x", text="q"), passages, actor="a"
+    )
     assert wp.drafted and wp.grounded
     assert wp.model_authored is False, "a draft citing an unretrieved source must be discarded"
 

@@ -98,10 +98,13 @@ isolation at the STORE level is part of binding a durable store, which this repo
 plan narrative and one working-paper draft, each schema-validated and grounding-checked and
 discarded on failure, with a deterministic fallback used instead. The offline eval scores eight
 metrics on every change, two of which (`plan_narration_groundedness` and `workpaper_grounding`)
-measure raw model output rather than filtered output so they can go red. What is NOT yet in place:
-the managed model id is a pinned default rather than a confirmed deployment decision, there is no
-token budget, rate limit or kill switch, no live-model eval run has been registered with the `model-quality-gate`
-promotion gate, and prompt-injection screening through `agent-guardrail-gateway` is not bound. Until those close, the
+measure raw model output rather than filtered output so they can go red. A `GuardrailPort`
+screens both calls' input and output through `agent-guardrail-gateway` (rule R1); a blocked
+direction is audited `blocked` and degrades to the deterministic fallback rather than reaching,
+or trusting, the model.
+What is NOT yet in place: the managed model id is a pinned default rather than a confirmed
+deployment decision, there is no token budget, rate limit or kill switch, and no live-model eval
+run has been registered with the `model-quality-gate` promotion gate. Until those close, the
 managed narrator is not production-cleared and the deterministic path is what should be relied on.
 
 ### Which regulations does this claim to satisfy?
@@ -118,7 +121,7 @@ weights and band floors decide which parts of the bank get audited this year.
 
 The `Partial` and `TODO (repo owner)` rows in `COMPLIANCE.md`, each of which names exactly what is
 missing. The ones that need a risk acceptance if you go live without them: the managed `_parse`
-response mappings and the durable estate store with its object-level authorisation, rule R1 (the
-`agent-guardrail-gateway` binding), rule R5 and P-08 (the `model-quality-gate` metric bundle), P-10 (timeouts, circuit
+response mappings and the durable estate store with its object-level authorisation, rule R5 and
+P-08 (the `model-quality-gate` metric bundle), P-10 (timeouts, circuit
 breaker and a documented kill switch), and P-01's private-egress rule, which depends on your own
 network rather than on this repo.

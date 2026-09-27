@@ -170,9 +170,12 @@ map):
   `AUDIT_KNOWLEDGE_BASE_URL` names; binding it to `enterprise-knowledge-base` instead is the rule R3 decision, and it is
   the one your corpus governance probably wants.
 
-The guardrail gateway (`agent-guardrail-gateway`) is **not** integrated today. It becomes mandatory the moment
-untrusted free text reaches the drafter, which the fieldwork path already carries in its retrieved
-passages: see rule R1 in [`../COMPLIANCE.md`](../COMPLIANCE.md).
+The guardrail gateway (`agent-guardrail-gateway`) is wired through `GuardrailPort`: both model calls
+are screened input and output (`domain/screening.py`), and the `gcp` binding calls the regional
+Model Armor template `infra/terraform/model_armor.tf` creates. In a region that refuses the
+malicious-URI filter and multi-language detection (`asia-southeast1` among them), set
+`model_armor_full_capabilities = false` and disclose the narrowed guardrail: see rule R1 in
+[`../COMPLIANCE.md`](../COMPLIANCE.md).
 
 ## 6. Adoption checklist
 

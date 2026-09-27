@@ -184,7 +184,9 @@ def draft_annual_plan(
     container = _container(settings)
     universe = enrich_universe(seed_universe(), tuple(container.horizon.signals()))
     plan = AnnualPlanner().rank(universe, as_of=date.today(), scope="annual audit plan")
-    note = PlanNarrationService(container.generation).narrate(plan)
+    note = PlanNarrationService(container.generation, container.guardrail, container.audit).narrate(
+        plan, actor=actor
+    )
     review_ref, review_routing = _route_envelope(
         container,
         subject=plan.subject,

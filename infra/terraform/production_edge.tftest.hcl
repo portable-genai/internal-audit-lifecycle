@@ -18,6 +18,7 @@
 # it assert the audit-log name is derived rather than pinned by hand.
 
 mock_provider "google" {}
+mock_provider "google-beta" {}
 
 
 # worm_locked has NO DEFAULT (variables.tf): the audit bucket's lock is irreversible, so a plan
@@ -93,6 +94,40 @@ run "residency_defaults_are_in_country" {
   assert {
     condition     = strcontains(google_logging_project_sink.audit_to_worm.filter, "/logs/${local.audit_log_name}")
     error_message = "The WORM sink filter must name the log the application actually writes; a filter naming a log nobody writes routes an empty stream."
+  }
+}
+
+run "guardrail_template_is_gated_on_full_capabilities" {
+  command = plan
+
+  variables {
+    project_id                    = "fictional-agent-project"
+    enable_vpc_sc                 = false
+    model_armor_full_capabilities = false
+  }
+
+  assert {
+    condition     = google_model_armor_template.guardrail.template_id == "internal-audit-lifecycle-guardrail"
+    error_message = "The template id must match config/settings.yaml model_armor.template_id: a zero-edit deployment must name a template this file provisions."
+  }
+
+  assert {
+    condition     = length(google_model_armor_template.guardrail.filter_config[0].malicious_uri_filter_settings) == 0
+    error_message = "With model_armor_full_capabilities = false, the malicious-URI filter must be ABSENT (a region that refuses it must fail closed on the template, not on this assertion)."
+  }
+}
+
+run "guardrail_template_takes_full_capabilities_by_default" {
+  command = plan
+
+  variables {
+    project_id    = "fictional-agent-project"
+    enable_vpc_sc = false
+  }
+
+  assert {
+    condition     = length(google_model_armor_template.guardrail.filter_config[0].malicious_uri_filter_settings) == 1
+    error_message = "The default must ask for the full guardrail; a deployment in a region that refuses it opts out explicitly."
   }
 }
 
@@ -189,6 +224,11 @@ run "serving_edge_contract" {
   assert {
     condition     = one([for item in google_cloud_run_v2_service.api[0].template[0].containers[0].env : item.value if item.name == "${local.render_env_prefix}_PROFILE"]) == "gcp"
     error_message = "The cloud profile must be named explicitly on the service: an unset profile is not a usable production posture."
+  }
+
+  assert {
+    condition     = one([for item in google_cloud_run_v2_service.api[0].template[0].containers[0].env : item.value if item.name == "${local.render_env_prefix}_GUARDRAIL"]) == "true"
+    error_message = "Rule R1: the guardrail switch must be stated explicitly on the service, not left to infer from a missing variable."
   }
 
   assert {

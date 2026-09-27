@@ -11,6 +11,12 @@ The request-building, parsing and grounding checks are module-level pure functio
 can score the RAW model output through the same contract the service enforces (a grounding metric
 that watched only the already-filtered service output could never go red). Pure stdlib: the model
 and the corpus are reached only through injected ports.
+
+Rule R1: the drafting prompt (the audit area and every retrieved passage, as sent) is screened
+INPUT before the call and the raw response OUTPUT after it, before either is parsed or trusted
+(:mod:`.screening`). A refusal in either direction, or a guardrail that cannot decide, is audited
+``Decision.BLOCKED`` and the draft is the deterministic fallback below: never text the guardrail
+refused, and never a partial model draft.
 """
 
 from __future__ import annotations
@@ -19,8 +25,11 @@ import json
 import re
 from dataclasses import dataclass
 
+from ..ports.audit import AuditSinkPort
 from ..ports.generation import GenerationPort, GenerationRequest
+from ..ports.guardrail import GuardrailPort
 from .kernel import Citation
+from .screening import ScreenedGeneration
 
 __all__ = [
     "RetrievalQuery",
@@ -137,10 +146,17 @@ def _citations(passages: tuple[RetrievedPassage, ...]) -> tuple[Citation, ...]:
 class WorkpaperService:
     """Draft a grounded working paper, or refuse to draft when retrieval is empty."""
 
-    def __init__(self, generation: GenerationPort) -> None:
-        self._generation = generation
+    #: The audit action a guardrail refusal of this call is recorded under.
+    ACTION = "workpaper_draft"
 
-    def draft(self, query: RetrievalQuery, passages: tuple[RetrievedPassage, ...]) -> Workpaper:
+    def __init__(
+        self, generation: GenerationPort, guardrail: GuardrailPort, audit: AuditSinkPort
+    ) -> None:
+        self._model = ScreenedGeneration(generation, guardrail, audit, action=self.ACTION)
+
+    def draft(
+        self, query: RetrievalQuery, passages: tuple[RetrievedPassage, ...], *, actor: str
+    ) -> Workpaper:
         if not passages:
             # Empty retrieval means NO draft. Never an ungrounded narrative.
             return Workpaper(
@@ -154,29 +170,23 @@ class WorkpaperService:
 
         request = build_request(query, passages)
         citations = _citations(passages)
-        try:
-            response = self._generation.generate(request)
-        except Exception:  # noqa: BLE001 - a drafting failure degrades, never crashes fieldwork
-            return Workpaper(
-                area=query.area,
-                drafted=True,
-                text=fallback_text(passages),
-                model_authored=False,
-                grounded=True,
-                citations=citations,
-            )
-
-        draft = parse_draft(response.text)
+        fallback = Workpaper(
+            area=query.area,
+            drafted=True,
+            text=fallback_text(passages),
+            model_authored=False,
+            grounded=True,
+            citations=citations,
+        )
+        # Rule R1: screened both ways, a refusal audited BLOCKED; None means use the fallback.
+        # Nothing here was scored, so a BLOCKED record states no severity.
+        raw = self._model.generate(request, actor=actor)
+        if raw is None:
+            return fallback
+        draft = parse_draft(raw)
         if draft is None or not draft_is_grounded(draft, passages):
             # Schema-invalid or ungrounded: discard the model output, never repair it.
-            return Workpaper(
-                area=query.area,
-                drafted=True,
-                text=fallback_text(passages),
-                model_authored=False,
-                grounded=True,
-                citations=citations,
-            )
+            return fallback
         return Workpaper(
             area=query.area,
             drafted=True,
