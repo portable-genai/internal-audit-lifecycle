@@ -102,7 +102,7 @@ the reason this system exists.
 | Model and agent promotion | `model-quality-gate` AI quality and model risk | `eval/run_eval.py --mode gate` asks `model-quality-gate`; the offline smoke mode never promotes. |
 | Traces and the immutable audit sink | `agent-observability` agent observability | `AuditSinkPort` and `ObservabilityTracerPort`. |
 | Human review and maker-checker | `human-review-console` human review console | `ReviewRouterPort` over the shared `review-kit`. This repo produces escalations; it does not render a queue. |
-| Prompt-injection defence and output filtering | `agent-guardrail-gateway` agent guardrail gateway | **not wired today.** It becomes mandatory the moment untrusted free text reaches the drafter (rule R1), and the retrieved passages already are that text. |
+| Prompt-injection defence and output filtering | `agent-guardrail-gateway` agent guardrail gateway | **wired.** A `GuardrailPort` screens the exact prompt built for each of the two generation calls (INPUT, before the model) and the model's raw response (OUTPUT, after it and before it is parsed or trusted); a blocked direction is audited `blocked` and degrades to the deterministic fallback (`domain/screening.py`). `local` is a heuristic stand-in, `gcp` calls a regional Model Armor template, `onprem` refuses. |
 
 ### Can I demo it without a cloud project?
 

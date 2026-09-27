@@ -571,7 +571,9 @@ class DemoRun:
     def _step_annual_plan(self) -> Produced:
         universe = enrich_universe(seed_universe(), tuple(self.container.horizon.signals()))
         plan = AnnualPlanner().rank(universe, as_of=kernel.utcnow().date(), scope="FY2027 plan")
-        note = PlanNarrationService(self.container.generation).narrate(plan)
+        note = PlanNarrationService(
+            self.container.generation, self.container.guardrail, self.container.audit
+        ).narrate(plan, actor="demo.auditor@bank.example")
         review = self.container.review_router.route(
             models.TriageResult(
                 subject=plan.subject,
@@ -865,6 +867,10 @@ def _exit_generation(container: Any) -> Any:
     return container.generation.generate(GenerationRequest(system="s", prompt="p"))
 
 
+def _exit_guardrail(container: Any) -> Any:
+    return container.guardrail.screen("please summarise the audit plan", kernel.Direction.INPUT)
+
+
 def _exit_obligations(container: Any) -> Any:
     return container.obligations.obligations_for("payments")
 
@@ -914,6 +920,7 @@ EXIT_CALLS: dict[str, Callable[[Any], Any]] = {
     "tracer": _exit_tracer,
     "evaluation": _exit_evaluation,
     "generation": _exit_generation,
+    "guardrail": _exit_guardrail,
     "obligations": _exit_obligations,
     "control_results": _exit_control_results,
     "horizon": _exit_horizon,

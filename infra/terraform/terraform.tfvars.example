@@ -80,6 +80,13 @@ production_edge_enabled = false
 # Cheap runtime control, on in the reference; false runs without routing and needs no console.
 review_routing_enabled = true
 
+# Rule R1: the guardrail switch, on in the reference; false runs with no screening. The guardrail
+# template asks for the full capability set by default; asia-southeast1 refuses the malicious-URI
+# filter and multi-language detection outright (CAPABILITY_NOT_SUPPORTED), so a deployment there
+# sets the second variable false and discloses the narrowed guardrail.
+guardrail_enabled = true
+# model_armor_full_capabilities = false
+
 # Rule R5 and rule R2: the model-quality-gate promotion authority and the agent-observability collector. Leave a
 # variable out entirely rather than setting it to an empty string; empty is read as a
 # deliberate "no authority named" and refuses.

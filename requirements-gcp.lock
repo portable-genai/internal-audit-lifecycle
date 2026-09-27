@@ -54,6 +54,7 @@ google-api-core==2.39.0
     #   google-cloud-appengine-logging
     #   google-cloud-core
     #   google-cloud-logging
+    #   google-cloud-modelarmor
 google-auth==2.58.1
     # via
     #   internal-audit-lifecycle (pyproject.toml)
@@ -61,6 +62,7 @@ google-auth==2.58.1
     #   google-cloud-appengine-logging
     #   google-cloud-core
     #   google-cloud-logging
+    #   google-cloud-modelarmor
     #   google-genai
 google-cloud-appengine-logging==1.10.0
     # via google-cloud-logging
@@ -69,6 +71,8 @@ google-cloud-audit-log==0.6.2
 google-cloud-core==2.7.0
     # via google-cloud-logging
 google-cloud-logging==3.16.3
+    # via internal-audit-lifecycle (pyproject.toml)
+google-cloud-modelarmor==0.7.1
     # via internal-audit-lifecycle (pyproject.toml)
 google-genai==2.25.0
     # via internal-audit-lifecycle (pyproject.toml)
@@ -85,6 +89,7 @@ grpcio==1.84.0
     #   google-api-core
     #   google-cloud-appengine-logging
     #   google-cloud-logging
+    #   google-cloud-modelarmor
     #   googleapis-common-protos
     #   grpc-google-iam-v1
     #   grpcio-status
@@ -118,12 +123,14 @@ proto-plus==1.28.4
     #   google-api-core
     #   google-cloud-appengine-logging
     #   google-cloud-logging
+    #   google-cloud-modelarmor
 protobuf==7.36.2
     # via
     #   google-api-core
     #   google-cloud-appengine-logging
     #   google-cloud-audit-log
     #   google-cloud-logging
+    #   google-cloud-modelarmor
     #   googleapis-common-protos
     #   grpc-google-iam-v1
     #   grpcio-status

@@ -71,11 +71,6 @@ model is a bounded, replaceable component that writes two pieces of prose and no
   stub adapter against the golden set and the two oracles. Add a managed-profile run, registered
   with the `model-quality-gate` promotion gate (P-08, rule R5), that scores `plan_narration_groundedness` and
   `workpaper_grounding` with the real model bound.
-- **Prompt-injection screening** (rule R1): the `agent-guardrail-gateway` is not bound, and this repo
-  needs it more than a purely numeric one does. The plan narrative's facts block carries engine
-  integers, but the working-paper path puts RETRIEVED PASSAGE TEXT into the prompt, and that text
-  comes from a corpus this service does not own. Screen it before it reaches `build_request`, and
-  fail closed to deterministic-only when the screen is unavailable.
 - **Reasoning trace**: the audit record carries the engine result and its citations, not the
   prompt and reply pair. `COMPLIANCE.md` P-07 records that as owed.
 

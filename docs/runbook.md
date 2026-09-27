@@ -153,6 +153,20 @@ not fail the request: the response carries `review_routing: "failed"` and an emp
 the failure is logged, and the console says the item is not queued for review. The API, the
 agent tools and the CLI all report it. Terraform states the switch as `review_routing_enabled`.
 
+`AUDIT_GUARDRAIL` switches the guardrail (rule R1) the same three-state way, default on. On, both
+model calls (the plan narrative and the working-paper draft) screen the prompt before the call and
+the raw answer after it; the `gcp` profile calls the Model Armor template named by
+`model_armor.template_id` (default `internal-audit-lifecycle-guardrail`, created by
+`infra/terraform/model_armor.tf`) on the regional host `model_armor.host`, with a
+`model_armor.timeout_seconds` deadline. On under the managed profile with no template named
+refuses at boot. A refusal, an incomplete screen (Model Armor `invocation_result` other than
+`SUCCESS`) or an unreachable guardrail is written to the audit trail as decision `blocked` with
+the action (`plan_narration` or `workpaper_draft`), the direction and the reason, and the response
+carries the deterministic fallback text (`narrative_model_authored` / `model_authored` false):
+a burst of `blocked` records with reason `guardrail unavailable (...)` means Model Armor is down or
+the runtime account lacks `roles/modelarmor.user`, not that users are attacking. Off logs one
+warning at startup and screens nothing. Terraform states the switch as `guardrail_enabled`.
+
 ## Supply chain
 Installs come from the committed lockfiles. After changing a dependency run `make lock` and commit
 both files, then `make audit` (`pip-audit` over both locks). CI runs the same audit as a hard

@@ -26,7 +26,9 @@ from hex_service_kit import provenance
 
 from internal_audit_lifecycle import config
 from internal_audit_lifecycle.adapters.gcp.generation import CloudGenerationAdapter
+from internal_audit_lifecycle.adapters.local.audit import LocalAuditAdapter
 from internal_audit_lifecycle.adapters.local.generation import LocalGenerationAdapter
+from internal_audit_lifecycle.adapters.local.guardrail import LocalHeuristicGuardrailAdapter
 from internal_audit_lifecycle.api import app as app_module
 from internal_audit_lifecycle.config import LOCAL_STUB_MODEL, Settings
 from internal_audit_lifecycle.domain import fieldwork, narration
@@ -92,10 +94,10 @@ def test_a_route_that_calls_no_model_names_none(api_client: TestClient) -> None:
 class _AnsweringNarrator(PlanNarrationService):
     """The real narrator, plus what a model adapter that searched would note while it called."""
 
-    def narrate(self, plan: AnnualPlan) -> NarratedPlan:
+    def narrate(self, plan: AnnualPlan, *, actor: str) -> NarratedPlan:
         provenance.note_model("fake-answering-model")
         provenance.note_search()
-        return super().narrate(plan)
+        return super().narrate(plan, actor=actor)
 
 
 def test_the_route_names_the_model_that_answered_and_that_it_searched(
@@ -246,11 +248,14 @@ def test_every_call_site_is_free_because_every_one_writes_prose() -> None:
     samples, then discarded (never re-rolled) if it fails. So no call site pins ``0.0``.
     """
     port = _Recording()
+    guardrail = LocalHeuristicGuardrailAdapter(Settings.load())
+    audit = LocalAuditAdapter(Settings(audit_path=":memory:"))
     plan = AnnualPlanner().rank(seed_universe(), as_of=date(2026, 8, 8), scope="annual")
-    PlanNarrationService(port).narrate(plan)
-    WorkpaperService(port).draft(
+    PlanNarrationService(port, guardrail, audit).narrate(plan, actor="a")
+    WorkpaperService(port, guardrail, audit).draft(
         RetrievalQuery(area="payments", text="x"),
         (RetrievedPassage(source_id="wp-1", title="t", snippet="s"),),
+        actor="a",
     )
     assert [r.response_keys for r in port.requests] == [("narrative",), ("workpaper",)]
     assert [r.temperature for r in port.requests] == [None, None]

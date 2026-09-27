@@ -33,6 +33,7 @@ from internal_audit_lifecycle.domain.kernel import (
     AuditEvent,
     Citation,
     Decision,
+    Direction,
     Severity,
 )
 from internal_audit_lifecycle.domain.models import (
@@ -73,6 +74,10 @@ CANONICAL_GEN_REQUEST = GenerationRequest(
     facts=(("entities", "4"),),
     response_keys=("narrative",),
 )
+
+#: The text every guardrail implementation screens (rule R1): benign, so the offline heuristic
+#: allows it and the local family genuinely answers rather than merely failing to raise.
+CANONICAL_GUARDRAIL_TEXT = "restate the ranked entities as a short narrative"
 
 #: The read area every read-port implementation is queried for (the seed fixtures answer for it).
 CANONICAL_AREA = "payments"
@@ -136,6 +141,14 @@ def _generation_invoke(adapter: Any) -> Any:
 
 def _generation_answered(_adapter: Any, result: Any) -> bool:
     return bool(getattr(result, "text", ""))
+
+
+def _guardrail_invoke(adapter: Any) -> Any:
+    return adapter.screen(CANONICAL_GUARDRAIL_TEXT, Direction.INPUT)
+
+
+def _guardrail_answered(_adapter: Any, result: Any) -> bool:
+    return bool(result.allowed) and result.sanitized_text == CANONICAL_GUARDRAIL_TEXT
 
 
 def _obligations_invoke(adapter: Any) -> Any:
@@ -212,6 +225,13 @@ CANONICAL_CALLS: dict[str, PortCase] = {
         # The lazy `google.genai` import is the first thing the managed narrator does.
         managed_refusal=(ImportError,),
         detail="narrate the engine facts as text",
+    ),
+    "guardrail": PortCase(
+        invoke=_guardrail_invoke,
+        answered=_guardrail_answered,
+        # The lazy `google.cloud.modelarmor` import is the first thing the managed adapter does.
+        managed_refusal=(ImportError,),
+        detail="screen one generation call's input for prompt injection / jailbreak",
     ),
     "obligations": PortCase(
         invoke=_obligations_invoke,

@@ -18,6 +18,7 @@ from .audit import AuditSinkPort
 from .control_results import ControlResultsReadPort
 from .finding_feed import FindingFeedPort
 from .generation import GenerationPort
+from .guardrail import GuardrailPort
 from .horizon import HorizonReadPort
 from .identity import (
     CLIENT_ASSERTED,
@@ -43,6 +44,7 @@ PORT_PROTOCOLS: dict[str, type] = {
     "identity": IdentityPort,
     "review_router": ReviewRouterPort,
     "generation": GenerationPort,
+    "guardrail": GuardrailPort,
     "obligations": ObligationsReadPort,
     "control_results": ControlResultsReadPort,
     "horizon": HorizonReadPort,
@@ -67,6 +69,7 @@ __all__ = [
     "EndUserAuthUnavailableError",
     "FindingFeedPort",
     "GenerationPort",
+    "GuardrailPort",
     "HorizonReadPort",
     "IdentityPort",
     "KnowledgeBaseReadPort",

@@ -1,9 +1,14 @@
 """The plan-narrative narration service: the model narrates the engine's numbers, never makes them.
 
 Given an :class:`~.planning.AnnualPlan` (already ranked by the deterministic engine), this asks
-the generation port for a short planning narrative, then holds it to two hard rules before it is
-allowed out:
+the generation port for a short planning narrative, then holds it to three hard rules before it
+is allowed out:
 
+* **Guardrail screening (rule R1).** The prompt is screened INPUT before the call and the raw
+  response OUTPUT after it, before either is parsed or trusted (:mod:`.screening`). A refusal in
+  either direction, or a guardrail that cannot decide, is audited ``Decision.BLOCKED`` and the
+  narrative is the deterministic fallback below: narration is optional here, so a refusal
+  degrades rather than failing the plan, and never sends or returns text the guardrail refused.
 * **Schema validation, discard on failure.** The model must return JSON with the requested keys;
   malformed output is discarded, not repaired.
 * **Groundedness, discard on failure.** Every integer in the narrative must be one the engine
@@ -21,8 +26,11 @@ import json
 import re
 from dataclasses import dataclass
 
+from ..ports.audit import AuditSinkPort
 from ..ports.generation import GenerationPort, GenerationRequest
+from ..ports.guardrail import GuardrailPort
 from .planning import AnnualPlan
+from .screening import ScreenedGeneration
 
 __all__ = [
     "NarratedPlan",
@@ -117,21 +125,24 @@ def fallback_text(facts: tuple[tuple[str, str], ...]) -> str:
 class PlanNarrationService:
     """Draft a grounded planning narrative for a ranked annual plan."""
 
-    def __init__(self, generation: GenerationPort) -> None:
-        self._generation = generation
+    #: The audit action a guardrail refusal of this call is recorded under.
+    ACTION = "plan_narration"
 
-    def narrate(self, plan: AnnualPlan) -> NarratedPlan:
+    def __init__(
+        self, generation: GenerationPort, guardrail: GuardrailPort, audit: AuditSinkPort
+    ) -> None:
+        self._model = ScreenedGeneration(generation, guardrail, audit, action=self.ACTION)
+
+    def narrate(self, plan: AnnualPlan, *, actor: str) -> NarratedPlan:
         request = build_request(plan)
-        try:
-            response = self._generation.generate(request)
-        except Exception:  # noqa: BLE001 - a narration failure degrades, never crashes a decision
-            return NarratedPlan(
-                text=fallback_text(request.facts), model_authored=False, grounded=True
-            )
-
-        narrative = parse_narrative(response.text)
+        fallback = NarratedPlan(
+            text=fallback_text(request.facts), model_authored=False, grounded=True
+        )
+        # Rule R1: screened both ways, a refusal audited BLOCKED; None means use the fallback.
+        raw = self._model.generate(request, actor=actor, severity=plan.severity)
+        if raw is None:
+            return fallback
+        narrative = parse_narrative(raw)
         if narrative is None or not narrative_is_grounded(narrative, request.facts):
-            return NarratedPlan(
-                text=fallback_text(request.facts), model_authored=False, grounded=True
-            )
+            return fallback
         return NarratedPlan(text=narrative, model_authored=True, grounded=True)
