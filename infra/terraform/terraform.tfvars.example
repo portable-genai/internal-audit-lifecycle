@@ -85,7 +85,7 @@ review_routing_enabled = true
 # filter and multi-language detection outright (CAPABILITY_NOT_SUPPORTED), so a deployment there
 # sets the second variable false and discloses the narrowed guardrail.
 guardrail_enabled = true
-# model_armor_full_capabilities = false
+model_armor_full_capabilities = false # asia-southeast1 refuses the malicious-URI filter; state true in a region that serves it
 
 # Rule R5 and rule R2: the model-quality-gate promotion authority and the agent-observability collector. Leave a
 # variable out entirely rather than setting it to an empty string; empty is read as a
