@@ -117,7 +117,24 @@ run "guardrail_template_is_gated_on_full_capabilities" {
   }
 }
 
-run "guardrail_template_takes_full_capabilities_by_default" {
+run "guardrail_template_takes_full_capabilities_when_stated" {
+  command = plan
+
+  variables {
+    project_id                    = "fictional-agent-project"
+    enable_vpc_sc                 = false
+    model_armor_full_capabilities = true
+  }
+
+  assert {
+    condition     = length(google_model_armor_template.guardrail.filter_config[0].malicious_uri_filter_settings) == 1
+    error_message = "The default must ask for the full guardrail; a deployment in a region that refuses it opts out explicitly."
+  }
+}
+
+# Slice 7 of the 2026-09-23 posture rule: a control that is not irreversible defaults off in
+# code, so the regional capabilities arrive only when a deployment states them.
+run "guardrail_regional_capabilities_are_declined_unless_stated" {
   command = plan
 
   variables {
@@ -126,8 +143,13 @@ run "guardrail_template_takes_full_capabilities_by_default" {
   }
 
   assert {
-    condition     = length(google_model_armor_template.guardrail.filter_config[0].malicious_uri_filter_settings) == 1
-    error_message = "The default must ask for the full guardrail; a deployment in a region that refuses it opts out explicitly."
+    condition     = length(google_model_armor_template.guardrail.filter_config[0].malicious_uri_filter_settings) == 0
+    error_message = "model_armor_full_capabilities defaults to false: the malicious-URI filter arrives only when stated."
+  }
+
+  assert {
+    condition     = length(google_model_armor_template.guardrail.template_metadata[0].multi_language_detection) == 0
+    error_message = "model_armor_full_capabilities defaults to false: multi-language detection arrives only when stated."
   }
 }
 
